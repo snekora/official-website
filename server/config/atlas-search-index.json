@@ -1,0 +1,36 @@
+{
+  "name": "productSearch",
+  "definition": {
+    "mappings": {
+      "dynamic": true,
+      "fields": {
+        "name": [
+          {
+            "type": "string",
+            "analyzer": "lucene.standard"
+          },
+          {
+            "type": "autocomplete",
+            "analyzer": "lucene.standard",
+            "tokenization": "edgeGram",
+            "minGrams": 2,
+            "maxGrams": 15
+          }
+        ],
+        "brand": [
+          {
+            "type": "string",
+            "analyzer": "lucene.standard"
+          },
+          {
+            "type": "autocomplete",
+            "analyzer": "lucene.standard",
+            "tokenization": "edgeGram",
+            "minGrams": 2,
+            "maxGrams": 15
+          }
+        ]
+      }
+    }
+  }
+}
