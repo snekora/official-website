@@ -35,8 +35,12 @@ const exchangeCodeForTokens = async (code) => {
 };
 
 const generateToken = (userId) => {
+  let expiresIn = process.env.JWT_EXPIRES_IN || "7d";
+  // Remove any accidental quotes or spaces from Railway env vars
+  expiresIn = expiresIn.replace(/['"]/g, "").trim();
+
   return jwt.sign({ id: userId }, process.env.JWT_SECRET, {
-    expiresIn: process.env.JWT_EXPIRES_IN || "7d",
+    expiresIn,
   });
 };
 
