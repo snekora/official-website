@@ -83,7 +83,7 @@ const EditAddressModal = ({ isOpen, onClose, onSave, address }) => {
 
       {/* Modal */}
       <div
-        className={`relative w-full sm:max-w-md bg-[#0a0a0a] text-white border border-white/10 rounded-t-[32px] sm:rounded-[32px] shadow-2xl overflow-hidden flex flex-col max-h-[92vh] ${
+        className={`relative w-full sm:max-w-md bg-[#0a0a0a] text-white border border-white/10 rounded-t-[32px] sm:rounded-[32px] shadow-2xl overflow-hidden flex flex-col max-h-[85dvh] sm:max-h-[90vh] ${
           isAnimatingOut ? "animate-modal-out" : "animate-modal-in"
         }`}
       >
