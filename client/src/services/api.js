@@ -31,11 +31,19 @@ api.interceptors.response.use(
       response.data.success !== undefined &&
       response.data.data !== undefined
     ) {
-      response.data = {
-        success: response.data.success,
-        message: response.data.message,
-        ...response.data.data,
-      };
+      if (Array.isArray(response.data.data)) {
+        response.data = {
+          success: response.data.success,
+          message: response.data.message,
+          data: response.data.data,
+        };
+      } else {
+        response.data = {
+          success: response.data.success,
+          message: response.data.message,
+          ...response.data.data,
+        };
+      }
     }
 
     return response;
