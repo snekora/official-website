@@ -13,11 +13,11 @@ const storage = multer.memoryStorage();
  * File filter: only allow image mime types.
  */
 const fileFilter = (req, file, cb) => {
-  if (file.mimetype.startsWith("image/")) {
+  if (file.mimetype.startsWith("image/") || file.mimetype.startsWith("video/")) {
     cb(null, true);
   } else {
     cb(
-      new ApiError(400, `Invalid file type: ${file.mimetype}. Only images are allowed.`),
+      new ApiError(400, `Invalid file type: ${file.mimetype}. Only images and videos are allowed.`),
       false,
     );
   }
@@ -27,7 +27,7 @@ const upload = multer({
   storage,
   fileFilter,
   limits: {
-    fileSize: 5 * 1024 * 1024, // 5 MB per file
+    fileSize: 50 * 1024 * 1024, // 50 MB per file (increased to allow videos)
     files: 10,                  // Max 10 files per request
   },
 });

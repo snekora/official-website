@@ -22,6 +22,7 @@ app.get("/", (req, res) => {
   res.json({ status: "success", message: "API is running" });
 });
 
+
 // ─── Route Mounting ──────────────────────────────────────────────
 app.use("/api", apiRouter);
 

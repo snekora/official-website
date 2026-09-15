@@ -2,7 +2,7 @@ import React, { useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import { adminLogout } from "../features/auth/redux/adminAuthSlice";
-import { X, Package, LogOut, User, Image, ShieldCheck, LayoutDashboard } from "lucide-react";
+import { X, Package, LogOut, User, Image, ShieldCheck, LayoutDashboard, PlaySquare } from "lucide-react";
 import SnekoraLogo from "../../assets/logo/snekora_logo.png";
 
 const NavigationMenu = ({ isOpen, onClose }) => {
@@ -27,6 +27,7 @@ const NavigationMenu = ({ isOpen, onClose }) => {
     { name: "Dashboard", path: "/admin", icon: LayoutDashboard },
     { name: "Products", path: "/admin/products", icon: Package },
     { name: "Posters", path: "/admin/poster", icon: Image },
+    { name: "Stories", path: "/admin/stories", icon: PlaySquare },
     { name: "Manage Admins", path: "/admin/manage", icon: ShieldCheck },
   ];
 

@@ -1,65 +1,64 @@
 import React, { useState, useRef, useEffect } from "react";
-import { X, ChevronLeft, ChevronRight, Pause, Play, Volume2, VolumeX } from "lucide-react";
+import { X, ChevronLeft, ChevronRight, Pause, Play, Volume2, VolumeX, Loader2 } from "lucide-react";
 import StoryBubble from "./StoryBubble";
 import ProductTagOverlay from "./ProductTagOverlay";
-import dummyVideo from "../../../assets/video/73b73f1db5ec43bda72d4839863905aa.HD-720p-1.6Mbps-87690301.mp4";
-import p123 from "../../../assets/products/123.png";
-import p124 from "../../../assets/products/124.png";
-import p125 from "../../../assets/products/125.png";
-import p126 from "../../../assets/products/126.png";
-
-// Dummy Stories
-const stories = [
-  {
-    id: 1,
-    title: "Nike",
-    thumbnail: "https://picsum.photos/id/1011/200/200",
-    video: dummyVideo,
-    product: { id: "p1", title: "Nike Air Max", price: 12999, image: p123 },
-  },
-  {
-    id: 2,
-    title: "Adidas",
-    thumbnail: "https://picsum.photos/id/1025/200/200",
-    video: dummyVideo,
-    product: { id: "p2", title: "Adidas Ultraboost", price: 14999, image: p124 },
-  },
-  {
-    id: 3,
-    title: "Puma",
-    thumbnail: "https://picsum.photos/id/1005/200/200",
-    video: dummyVideo,
-    product: { id: "p3", title: "Puma RS-X", price: 8999, image: p125 },
-  },
-  {
-    id: 4,
-    title: "Apple",
-    thumbnail: "https://picsum.photos/id/1015/200/200",
-    video: dummyVideo,
-    product: { id: "p4", title: "Apple Watch SE", price: 29999, image: p126 },
-  },
-  {
-    id: 5,
-    title: "Samsung",
-    thumbnail: "https://picsum.photos/id/1027/200/200",
-    video: dummyVideo,
-    product: { id: "p5", title: "Samsung Galaxy Buds", price: 9999, image: p123 },
-  },
-  {
-    id: 6,
-    title: "Sony",
-    thumbnail: "https://picsum.photos/id/1035/200/200",
-    video: dummyVideo,
-    product: { id: "p6", title: "Sony WH-1000XM5", price: 24999, image: p124 },
-  },
-];
+import api from "../../../services/api";
 
 const StoriesCarousel = () => {
+  const [stories, setStories] = useState([]);
+  const [loading, setLoading] = useState(true);
   const [activeStoryIndex, setActiveStoryIndex] = useState(null);
   const [isPlaying, setIsPlaying] = useState(true);
   const [isMuted, setIsMuted] = useState(false);
   
   const videoRef = useRef(null);
+
+  // Fetch stories on mount
+  useEffect(() => {
+    const fetchStories = async () => {
+      try {
+        const response = await api.get("/story");
+        // Ensure we get the data array
+        const fetchedStories =
+          response.data?.stories ||
+          (Array.isArray(response.data?.data) ? response.data.data : null) ||
+          (Array.isArray(response.data) ? response.data : []);
+        
+        // Format the stories so the frontend components (StoryBubble/ProductTagOverlay)
+        // receive the data shape they expect.
+        const formattedStories = (Array.isArray(fetchedStories) ? fetchedStories : []).map((story) => {
+          let mappedProduct = null;
+          if (story.product) {
+            // Get the first image of the first variant if available
+            const firstImage = story.product.variants?.[0]?.images?.[0]?.url;
+            
+            mappedProduct = {
+              id: story.product._id,
+              title: story.product.name,
+              price: story.product.price,
+              image: firstImage || "https://via.placeholder.com/60", // fallback
+            };
+          }
+
+          return {
+            id: story._id,
+            title: story.title,
+            thumbnail: story.thumbnail?.url,
+            video: story.video?.url,
+            product: mappedProduct,
+          };
+        });
+
+        setStories(formattedStories);
+      } catch (error) {
+        console.error("Failed to fetch stories", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchStories();
+  }, []);
 
   // Handle keyboard navigation and body scroll lock
   useEffect(() => {
@@ -89,7 +88,7 @@ const StoriesCarousel = () => {
       window.removeEventListener("keydown", handleKeyDown);
       document.body.style.overflow = "unset";
     };
-  }, [activeStoryIndex]);
+  }, [activeStoryIndex, stories.length]);
 
   const handleStoryClick = (index) => {
     setActiveStoryIndex(index);
@@ -158,6 +157,18 @@ const StoriesCarousel = () => {
       setIsMuted(!isMuted);
     }
   };
+
+  if (loading) {
+    return (
+      <div className="flex h-[120px] items-center justify-center">
+        <Loader2 className="animate-spin text-lime-400" size={24} />
+      </div>
+    );
+  }
+
+  if (stories.length === 0) {
+    return null; // Don't show the widget if there are no active stories
+  }
 
   const activeStory = activeStoryIndex !== null ? stories[activeStoryIndex] : null;
 

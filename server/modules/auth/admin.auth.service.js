@@ -8,8 +8,12 @@ const ApiError = require("../../utils/ApiError");
  * admin tokens from regular user tokens.
  */
 const generateAdminToken = (adminId) => {
+  let expiresIn = process.env.JWT_EXPIRES_IN || "7d";
+  // Remove any accidental quotes or spaces from Railway env vars
+  expiresIn = expiresIn.replace(/['"]/g, "").trim();
+
   return jwt.sign({ id: adminId, role: "admin" }, process.env.JWT_SECRET, {
-    expiresIn: process.env.JWT_EXPIRES_IN || "7d",
+    expiresIn,
   });
 };
 

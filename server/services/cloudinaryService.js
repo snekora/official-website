@@ -36,6 +36,38 @@ const uploadImage = (fileBuffer, folder) => {
 };
 
 /**
+ * Upload a single video buffer to Cloudinary.
+ *
+ * @param {Buffer}  fileBuffer  - The video file buffer (from multer memoryStorage)
+ * @param {string}  folder      - The Cloudinary folder path
+ * @returns {Promise<{ publicId: string, url: string }>}
+ */
+const uploadVideo = (fileBuffer, folder) => {
+  return new Promise((resolve, reject) => {
+    const stream = cloudinary.uploader.upload_stream(
+      {
+        folder,
+        resource_type: "video",
+        // Optional: you can add specific video transformations here
+      },
+      (error, result) => {
+        if (error) {
+          return reject(
+            new ApiError(500, `Cloudinary upload failed: ${error.message}`),
+          );
+        }
+        resolve({
+          publicId: result.public_id,
+          url: result.secure_url,
+        });
+      },
+    );
+
+    stream.end(fileBuffer);
+  });
+};
+
+/**
  * Upload multiple image buffers to Cloudinary.
  *
  * @param {Array<{ buffer: Buffer }>}  files   - Array of multer file objects
@@ -59,6 +91,19 @@ const deleteImage = async (publicId) => {
     await cloudinary.uploader.destroy(publicId);
   } catch (error) {
     console.error(`Failed to delete image ${publicId}:`, error.message);
+  }
+};
+
+/**
+ * Delete a single video from Cloudinary by its public ID.
+ *
+ * @param {string} publicId - The Cloudinary public_id of the video
+ */
+const deleteVideo = async (publicId) => {
+  try {
+    await cloudinary.uploader.destroy(publicId, { resource_type: "video" });
+  } catch (error) {
+    console.error(`Failed to delete video ${publicId}:`, error.message);
   }
 };
 
@@ -89,7 +134,9 @@ const deleteFolder = async (folderPath) => {
 
 module.exports = {
   uploadImage,
+  uploadVideo,
   uploadImages,
   deleteImage,
+  deleteVideo,
   deleteFolder,
 };
