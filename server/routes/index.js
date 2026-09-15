@@ -8,6 +8,7 @@ const brandRoutes = require("../modules/brand/brand.routes");
 const reviewRoutes = require("../modules/productReview/review.routes");
 const cartRoutes = require("../modules/cart/cart.routes");
 const storyRoutes = require("../modules/story/story.routes");
+const posterRoutes = require("../modules/poster/poster.routes");
 
 const router = express.Router();
 
@@ -22,6 +23,7 @@ router.use("/products", reviewRoutes); // /api/products/:productId/reviews
 router.use("/reviews", reviewRoutes); // /api/reviews/admin/:reviewId
 router.use("/cart", cartRoutes);
 router.use("/story", storyRoutes);
+router.use("/poster", posterRoutes);
 
 module.exports = router;
 
