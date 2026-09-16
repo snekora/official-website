@@ -1,5 +1,8 @@
 import React from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
+import { Heart } from "lucide-react";
+import { useDispatch, useSelector } from "react-redux";
+import { addToWishlist, removeFromWishlist } from "../features/wishlist/redux/wishlistSlice";
 
 export const SneakerPlaceholder = ({ color }) => (
   <svg
@@ -31,6 +34,29 @@ export const SneakerPlaceholder = ({ color }) => (
 
 const ProductCard = ({ product }) => {
   const { _id, name, price, originalPrice, variants } = product;
+  const dispatch = useDispatch();
+  const navigate = useNavigate();
+
+  const { items: wishlistItems } = useSelector((state) => state.wishlist);
+  const { isAuthenticated } = useSelector((state) => state.auth);
+  
+  const isInWishlist = wishlistItems?.some((item) => (item._id || item) === _id);
+
+  const toggleWishlist = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    
+    if (!isAuthenticated) {
+      navigate("/login");
+      return;
+    }
+
+    if (isInWishlist) {
+      dispatch(removeFromWishlist(_id));
+    } else {
+      dispatch(addToWishlist(_id));
+    }
+  };
 
   // Derive an image and a badge
   const firstVariant = variants?.[0];
@@ -41,14 +67,25 @@ const ProductCard = ({ product }) => {
   return (
     <Link
       to={`/product/${product.slug || _id}`}
-      className="block group bg-[#141414] rounded-[26px] p-2 border border-white/6 transition-all duration-300 hover:-translate-y-1.5 hover:shadow-[0_12px_30px_rgba(0,0,0,0.4)]"
+      className="block group bg-[#141414] rounded-[26px] p-2 border border-white/6 transition-all duration-300 hover:-translate-y-1.5 hover:shadow-[0_12px_30px_rgba(0,0,0,0.4)] relative"
     >
       <div className="relative aspect-square rounded-[20px] overflow-hidden bg-[radial-gradient(circle_at_50%_35%,#232323_0%,#0a0a0a_75%)] flex items-center justify-center">
         {badge && (
-          <span className="absolute top-3 left-3 z-10 bg-lime-300 text-black text-[11px] font-bold uppercase tracking-wide px-3 py-1.5 rounded-full">
+          <span className="absolute top-3 left-3 z-10 bg-lime-300 text-black text-[11px] font-bold uppercase tracking-wide px-3 py-1.5 rounded-full pointer-events-none">
             {badge}
           </span>
         )}
+
+        <button
+          onClick={toggleWishlist}
+          className="absolute top-3 right-3 z-10 p-2 rounded-full bg-black/40 backdrop-blur-md border border-white/10 text-white hover:bg-black/60 transition-colors"
+          aria-label={isInWishlist ? "Remove from wishlist" : "Add to wishlist"}
+        >
+          <Heart 
+            size={16} 
+            className={`transition-colors ${isInWishlist ? "fill-red-500 text-red-500" : "fill-transparent text-white"}`} 
+          />
+        </button>
 
         {image ? (
           <img

@@ -6,6 +6,7 @@ import { Link } from 'react-router-dom';
 import LottieComponent from 'lottie-react';
 import boxEmptyAnimation from '../../../assets/lottie/Boxempty.json';
 import { fetchCart, updateCartItem, removeCartItem } from '../redux/cartSlice';
+import { addToWishlist } from '../../wishlist/redux/wishlistSlice';
 import { fetchAddresses } from '../../address/redux/addressSlice';
 import { openCartWhatsApp } from '../../../services/whatsappOrder';
 import { toast } from 'react-toastify';
@@ -13,9 +14,6 @@ import { Loader2 } from 'lucide-react';
 import Breadcrumbs from '../../../components/Breadcrumbs';
 
 const Lottie = LottieComponent.default || LottieComponent;
-
-
-// Removed mock data
 
 const Cart = () => {
   const dispatch = useDispatch();
@@ -53,6 +51,18 @@ const Cart = () => {
       toast.success("Item removed from cart");
     } catch (error) {
       toast.error(error || "Failed to remove item");
+    }
+  };
+
+  const handleMoveToWishlist = async (item) => {
+    const productId = item.product?._id || item.product;
+    if (!productId) return;
+    try {
+      await dispatch(addToWishlist(productId)).unwrap();
+      await dispatch(removeCartItem(item._id)).unwrap();
+      toast.success("Moved to wishlist");
+    } catch (error) {
+      toast.error(error || "Failed to move item to wishlist");
     }
   };
 
@@ -109,13 +119,13 @@ const Cart = () => {
   }
 
   return (
-    <div className="min-h-screen bg-[#0a0a0a] text-white font-sans selection:bg-lime-300 selection:text-black pb-12">
+    <div className="bg-[#0a0a0a] text-white font-sans selection:bg-lime-300 selection:text-black pb-4">
       {/* Top Navigation / Breadcrumbs */}
       <div className="max-w-7xl mx-auto w-full flex items-center justify-between px-4 py-4 sm:px-6 lg:px-8">
         <Breadcrumbs items={[{ label: "Cart" }]} />
       </div>
 
-      <div className="px-4 sm:px-6 lg:px-8 py-6 max-w-xl mx-auto">
+      <div className="px-4 sm:px-6 lg:px-8 pt-2 pb-6 max-w-xl mx-auto">
         {cartItems.length === 0 ? (
           <div className="flex flex-col items-center justify-center pt-16 pb-6 text-center">
             <div className="w-48 h-48 mb-6 flex items-center justify-center">
@@ -126,17 +136,26 @@ const Cart = () => {
               />
             </div>
             <h2 className="text-xl font-medium mb-2">Your cart is empty</h2>
-            <p className="text-zinc-400 text-sm mb-8">Looks like you haven't added anything yet.</p>
-            <Link to="/">
-              <button className="bg-[#bdec5e] text-black font-semibold text-sm px-8 py-3.5 rounded-lg hover:bg-lime-400 transition-colors uppercase tracking-wider">
-                Start Shopping
+            <p className="text-zinc-400 text-sm mb-6">Looks like you haven't added anything yet.</p>
+            <div className="flex flex-col gap-3 w-full max-w-sm">
+              <Link to="/" className="w-full">
+                <button className="w-full bg-[#bdec5e] text-black font-semibold text-sm py-3.5 rounded-xl hover:bg-lime-400 transition-colors uppercase tracking-wider shadow-[0_0_20px_rgba(189,236,94,0.15)] cursor-pointer">
+                  Start Shopping
+                </button>
+              </Link>
+              <button 
+                onClick={() => navigate('/wishlist')}
+                className="w-full py-3.5 rounded-xl border border-dashed border-white/20 text-zinc-400 hover:text-white hover:border-white/40 hover:bg-white/5 transition-all flex items-center justify-center gap-2 text-sm font-medium cursor-pointer"
+              >
+                <Heart size={16} strokeWidth={1.5} className="text-red-400" />
+                Add from Wishlist
               </button>
-            </Link>
+            </div>
           </div>
         ) : (
           <>
             {/* Cart Items List */}
-            <div className="flex flex-col gap-6 mb-8">
+            <div className="flex flex-col gap-4 mb-6">
               {cartItems.map((item) => {
                 const product = item.product || {};
                 const variant = product.variants?.find((v) => v._id === item.variant) || {};
@@ -147,7 +166,7 @@ const Cart = () => {
                 const productLink = `/product/${product.slug || product._id}`;
 
                 return (
-                  <div key={item._id} className="flex gap-4 p-4 rounded-2xl border border-white/10 bg-white/2">
+                  <div key={item._id} className="flex gap-4 p-4 rounded-2xl border border-white/10 bg-white/2 hover:border-white/20 transition-all">
                     {/* Item Image */}
                     <Link to={productLink} state={{ from: "cart" }} className="w-24 h-24 rounded-xl overflow-hidden bg-[#1f1f1f] shrink-0 relative group cursor-pointer">
                       <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_50%,#27272a_0%,#1f1f1f_100%)] -z-10" />
@@ -165,26 +184,38 @@ const Cart = () => {
                           <Link to={productLink} state={{ from: "cart" }} className="hover:text-[#bdec5e] transition-colors cursor-pointer">
                             <h3 className="text-[15px] font-semibold tracking-wide mb-1">{product.name}</h3>
                           </Link>
-                          <p className="text-zinc-400 text-xs mb-2">
+                          <p className="text-zinc-400 text-xs mb-1">
                             Size: {item.size} • Color: {colorName}
                           </p>
                         </div>
                         <button 
                           onClick={() => handleRemoveItem(item._id)}
-                          className="p-1.5 text-zinc-500 hover:text-white hover:bg-white/10 rounded-md transition-colors"
+                          title="Remove from Cart"
+                          className="p-1.5 text-zinc-500 hover:text-white hover:bg-white/10 rounded-md transition-colors cursor-pointer"
+                          aria-label="Remove item"
                         >
                           <Trash2 size={16} strokeWidth={1.5} />
                         </button>
                       </div>
 
-                      <div className="flex items-center justify-between mt-2">
-                        <p className="text-[15px] font-medium">₹{(product.price || 0).toLocaleString()}</p>
+                      <div className="flex items-center justify-between mt-3 pt-2 border-t border-white/5">
+                        <div className="flex flex-col">
+                          <p className="text-[15px] font-medium">₹{(product.price || 0).toLocaleString()}</p>
+                          <button
+                            type="button"
+                            onClick={() => handleMoveToWishlist(item)}
+                            className="mt-1 flex items-center gap-1.5 text-xs text-zinc-400 hover:text-[#bdec5e] transition-colors cursor-pointer group/wish"
+                          >
+                            <Heart size={13} className="text-zinc-400 group-hover/wish:text-red-400 group-hover/wish:fill-red-400 transition-colors" />
+                            <span>Move to Wishlist</span>
+                          </button>
+                        </div>
                         
                         {/* Quantity Controls */}
                         <div className="flex items-center gap-3 bg-white/5 rounded-lg p-1 border border-white/5">
                           <button 
                             onClick={() => handleUpdateQuantity(item._id, item.quantity, -1)}
-                            className="p-1 hover:bg-white/10 rounded-md transition-colors text-zinc-400 hover:text-white disabled:opacity-30"
+                            className="p-1 hover:bg-white/10 rounded-md transition-colors text-zinc-400 hover:text-white disabled:opacity-30 cursor-pointer"
                             disabled={item.quantity <= 1}
                           >
                             <Minus size={14} strokeWidth={2} />
@@ -192,7 +223,7 @@ const Cart = () => {
                           <span className="text-sm font-medium w-4 text-center">{item.quantity}</span>
                           <button 
                             onClick={() => handleUpdateQuantity(item._id, item.quantity, 1)}
-                            className="p-1 hover:bg-white/10 rounded-md transition-colors text-zinc-400 hover:text-white"
+                            className="p-1 hover:bg-white/10 rounded-md transition-colors text-zinc-400 hover:text-white cursor-pointer"
                           >
                             <Plus size={14} strokeWidth={2} />
                           </button>
@@ -204,8 +235,11 @@ const Cart = () => {
               })}
               
               {/* Add from Wishlist Button */}
-              <button className="w-full py-4 mt-2 rounded-xl border border-dashed border-white/20 text-zinc-400 hover:text-white hover:border-white/40 hover:bg-white/5 transition-all flex items-center justify-center gap-2 text-sm font-medium">
-                <Heart size={18} strokeWidth={1.5} />
+              <button 
+                onClick={() => navigate('/wishlist')}
+                className="w-full py-3.5 mt-1 rounded-xl border border-dashed border-white/20 text-zinc-400 hover:text-white hover:border-white/40 hover:bg-white/5 transition-all flex items-center justify-center gap-2 text-sm font-medium cursor-pointer"
+              >
+                <Heart size={16} strokeWidth={1.5} />
                 Add more from Wishlist
               </button>
             </div>

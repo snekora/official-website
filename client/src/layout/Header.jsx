@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import { Menu, ShoppingCart } from "lucide-react";
 import { useDispatch, useSelector } from "react-redux";
 import { fetchCart } from "../features/cart/redux/cartSlice";
+import { fetchWishlist } from "../features/wishlist/redux/wishlistSlice";
 import SnekoraLogo from "../assets/logo/snekora_logo.png";
 import NavigationMenu from "./Menu";
 import HeaderSearch from "./HeaderSearch";
@@ -19,6 +20,7 @@ const Header = () => {
   useEffect(() => {
     if (isAuthenticated) {
       dispatch(fetchCart());
+      dispatch(fetchWishlist());
     }
   }, [dispatch, isAuthenticated]);
 
@@ -42,7 +44,7 @@ const Header = () => {
           <div className="flex items-center justify-start">
             <button onClick={() => setMenuOpen(true)} aria-label="Open menu">
               <Menu
-                className="text-white hover:text-lime-400 transition"
+                className="text-white hover:text-lime-400 transition cursor-pointer"
                 size={28}
               />
             </button>

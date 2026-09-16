@@ -22,6 +22,7 @@ router.use("/brands", brandRoutes);
 router.use("/products", reviewRoutes); // /api/products/:productId/reviews
 router.use("/reviews", reviewRoutes); // /api/reviews/admin/:reviewId
 router.use("/cart", cartRoutes);
+router.use("/wishlist", require("../modules/wishlist/wishlist.routes"));
 router.use("/story", storyRoutes);
 router.use("/poster", posterRoutes);
 

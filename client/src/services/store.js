@@ -10,6 +10,7 @@ import productReducer from "../features/product/redux/productSlice";
 import brandReducer from "../features/brand/redux/brandSlice";
 import cartReducer from "../features/cart/redux/cartSlice";
 import posterReducer from "../features/home/redux/posterSlice";
+import wishlistReducer from "../features/wishlist/redux/wishlistSlice";
 
 export const store = configureStore({
   reducer: {
@@ -24,5 +25,6 @@ export const store = configureStore({
     brand: brandReducer,
     cart: cartReducer,
     poster: posterReducer,
+    wishlist: wishlistReducer,
   },
 });

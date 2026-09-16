@@ -17,6 +17,7 @@ import SnekoraLogo from "../assets/logo/snekora_logo.png";
 const NavigationMenu = ({ isOpen, onClose, onOpenSearch }) => {
   const dispatch = useDispatch();
   const { user, isAuthenticated } = useSelector((state) => state.auth);
+  const { items: wishlistItems } = useSelector((state) => state.wishlist || {});
 
   useEffect(() => {
     document.body.style.overflow = isOpen ? "hidden" : "auto";
@@ -114,7 +115,14 @@ const NavigationMenu = ({ isOpen, onClose, onOpenSearch }) => {
                   size={20}
                   className="group-hover:scale-110 transition-transform"
                 />
-                <span className="text-lg md:text-xl font-medium">Wishlist</span>
+                <div className="flex items-center gap-2">
+                  <span className="text-lg md:text-xl font-medium">Wishlist</span>
+                  {wishlistItems?.length > 0 && (
+                    <span className="bg-[#bdec5e] text-black text-[10px] font-extrabold h-4 min-w-[16px] px-1 rounded-full flex items-center justify-center shadow-md">
+                      {wishlistItems.length}
+                    </span>
+                  )}
+                </div>
               </Link>
 
               <Link
