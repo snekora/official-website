@@ -20,15 +20,15 @@ const NavigationMenu = ({ isOpen, onClose }) => {
   const handleLogout = () => {
     dispatch(adminLogout());
     onClose();
-    navigate("/admin/login");
+    navigate("/mQ8vR2kX9Lp7N4/login");
   };
 
   const menuItems = [
-    { name: "Dashboard", path: "/admin", icon: LayoutDashboard },
-    { name: "Products", path: "/admin/products", icon: Package },
-    { name: "Posters", path: "/admin/poster", icon: Image },
-    { name: "Stories", path: "/admin/stories", icon: PlaySquare },
-    { name: "Manage Admins", path: "/admin/manage", icon: ShieldCheck },
+    { name: "Dashboard", path: "/mQ8vR2kX9Lp7N4", icon: LayoutDashboard },
+    { name: "Products", path: "/mQ8vR2kX9Lp7N4/products", icon: Package },
+    { name: "Posters", path: "/mQ8vR2kX9Lp7N4/poster", icon: Image },
+    { name: "Stories", path: "/mQ8vR2kX9Lp7N4/stories", icon: PlaySquare },
+    { name: "Manage Admins", path: "/mQ8vR2kX9Lp7N4/manage", icon: ShieldCheck },
   ];
 
   return (
@@ -126,7 +126,7 @@ const NavigationMenu = ({ isOpen, onClose }) => {
               </button>
             ) : (
               <Link
-                to="/admin/login"
+                to="/mQ8vR2kX9Lp7N4/login"
                 onClick={onClose}
                 className="flex items-center gap-2 bg-white text-black px-4 py-2 rounded-lg text-xs font-semibold hover:bg-lime-400 hover:text-black transition-all duration-300 shadow-[0_4px_12px_rgba(255,255,255,0.05)] cursor-pointer"
               >

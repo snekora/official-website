@@ -25,7 +25,7 @@ const AdminLogin = () => {
       ).unwrap();
 
       toast.success("Welcome back, Admin!");
-      navigate("/admin");
+      navigate("/mQ8vR2kX9Lp7N4");
     } catch (error) {
       toast.error(error || "Login failed. Check your credentials.");
     }

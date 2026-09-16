@@ -18,7 +18,7 @@ const AdminHeader = () => {
           />
         </button>
 
-        <Link to="/admin">
+        <Link to="/mQ8vR2kX9Lp7N4">
           <div className="flex items-center gap-2">
             <img src={SnekoraLogo} alt="SNEKORA" className="h-7" />
             <span className="rounded-md bg-lime-400/20 px-2 py-1 text-[10px] font-bold text-lime-400 tracking-wider">
