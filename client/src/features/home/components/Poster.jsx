@@ -1,6 +1,7 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect } from "react";
+import { useDispatch, useSelector } from "react-redux";
 import { ChevronLeft, ChevronRight, Loader2 } from "lucide-react";
-import api from "../../../services/api";
+import { fetchPublicPosters } from "../redux/posterSlice";
 
 // Fallback images
 import Hero1 from "../../../assets/posters/Hero/1.png";
@@ -16,32 +17,18 @@ const fallbackSlides = [
 ];
 
 const Poster = () => {
-  const [posters, setPosters] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const dispatch = useDispatch();
+  const { posters, loading } = useSelector((state) => state.poster || {});
   const [currentIndex, setCurrentIndex] = useState(0);
-  const [isPlaying, setIsPlaying] = useState(true);
-  const autoplayRef = useRef(null);
+  const [isPaused, setIsPaused] = useState(false);
+
+  // Touch Swipe States
+  const [touchStart, setTouchStart] = useState(null);
+  const [touchEnd, setTouchEnd] = useState(null);
 
   useEffect(() => {
-    const fetchPosters = async () => {
-      try {
-        const response = await api.get("/poster");
-        const fetchedPosters =
-          response.data?.posters ||
-          (Array.isArray(response.data?.data) ? response.data.data : null) ||
-          (Array.isArray(response.data) ? response.data : []);
-
-        const validPosters = Array.isArray(fetchedPosters) ? fetchedPosters : [];
-        setPosters(validPosters);
-      } catch (error) {
-        console.error("Failed to fetch posters", error);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchPosters();
-  }, []);
+    dispatch(fetchPublicPosters());
+  }, [dispatch]);
 
   // Use dynamic posters if available, otherwise use fallbacks
   const slides = posters.length > 0 ? posters : fallbackSlides;
@@ -52,7 +39,7 @@ const Poster = () => {
 
   const prevSlide = () => {
     setCurrentIndex((prevIndex) =>
-      prevIndex === 0 ? slides.length - 1 : prevIndex - 1,
+      prevIndex === 0 ? slides.length - 1 : prevIndex - 1
     );
   };
 
@@ -60,20 +47,45 @@ const Poster = () => {
     setCurrentIndex(index);
   };
 
+  // Autoplay timer that pauses on hover/touch-and-hold and resumes on release
   useEffect(() => {
-    if (isPlaying && slides.length > 1) {
-      autoplayRef.current = setInterval(nextSlide, 6000);
+    if (isPaused || slides.length <= 1) return;
+    const timer = setInterval(() => {
+      setCurrentIndex((prev) => (prev + 1) % slides.length);
+    }, 2800);
+
+    return () => clearInterval(timer);
+  }, [isPaused, currentIndex, slides.length]);
+
+  // Touch Swipe handlers
+  const minSwipeDistance = 50;
+  const onTouchStart = (e) => {
+    setIsPaused(true);
+    setTouchEnd(null);
+    setTouchStart(e.targetTouches[0].clientX);
+  };
+
+  const onTouchMove = (e) => {
+    setTouchEnd(e.targetTouches[0].clientX);
+  };
+
+  const onTouchEnd = () => {
+    setIsPaused(false);
+    if (!touchStart || !touchEnd) return;
+    const distance = touchStart - touchEnd;
+    const isLeftSwipe = distance > minSwipeDistance;
+    const isRightSwipe = distance < -minSwipeDistance;
+    if (isLeftSwipe) {
+      nextSlide();
     }
-    return () => {
-      if (autoplayRef.current) {
-        clearInterval(autoplayRef.current);
-      }
-    };
-  }, [isPlaying, currentIndex, slides.length]);
+    if (isRightSwipe) {
+      prevSlide();
+    }
+  };
 
   if (loading) {
     return (
-      <div className="relative w-full h-[40vh] md:h-[55vh] min-h-[300px] md:min-h-[450px] rounded-2xl md:rounded-3xl overflow-hidden bg-[#151515] flex items-center justify-center">
+      <div className="relative w-full aspect-[16/9] lg:aspect-[21/9] rounded-2xl md:rounded-3xl overflow-hidden bg-[#151515] flex items-center justify-center">
         <Loader2 size={32} className="animate-spin text-lime-400" />
       </div>
     );
@@ -81,21 +93,36 @@ const Poster = () => {
 
   return (
     <div
-      className="relative w-full h-[40vh] md:h-[55vh] min-h-[300px] md:min-h-[450px] rounded-2xl md:rounded-3xl overflow-hidden bg-[#151515] group/carousel"
-      onMouseEnter={() => setIsPlaying(false)}
-      onMouseLeave={() => setIsPlaying(true)}
+      className="relative w-full aspect-[16/9] lg:aspect-[21/9] rounded-2xl md:rounded-3xl overflow-hidden bg-[#151515] group/carousel select-none"
+      onMouseEnter={() => setIsPaused(true)}
+      onMouseLeave={() => setIsPaused(false)}
+      onTouchStart={onTouchStart}
+      onTouchMove={onTouchMove}
+      onTouchEnd={onTouchEnd}
+      onTouchCancel={() => {
+        setIsPaused(false);
+        setTouchEnd(null);
+        setTouchStart(null);
+      }}
     >
       {/* Slides Container */}
       <div className="relative w-full h-full">
         {slides.map((slide, index) => {
           const isActive = index === currentIndex;
-          // Determine the image source
-          const imageSrc = slide.image?.url || slide.image;
+          const desktopSrc =
+            slide.desktopImage?.url ||
+            slide.image?.url ||
+            (typeof slide.image === "string" ? slide.image : null);
+          const mobileSrc =
+            slide.mobileImage?.url ||
+            slide.image?.url ||
+            (typeof slide.image === "string" ? slide.image : null);
+          const fallbackSrc = desktopSrc || mobileSrc || Hero1;
 
           return (
             <div
               key={slide._id || index}
-              className={`absolute inset-0 w-full h-full transition-all duration-1000 ease-in-out ${
+              className={`absolute inset-0 w-full h-full transition-opacity duration-1000 ease-in-out ${
                 isActive
                   ? "opacity-100 z-10"
                   : "opacity-0 z-0 pointer-events-none"
@@ -103,56 +130,65 @@ const Poster = () => {
             >
               {/* Slide Image */}
               <div className="absolute inset-0 overflow-hidden w-full h-full">
-                <img
-                  src={imageSrc}
-                  alt={`Sneaker Poster ${index + 1}`}
-                  className={`w-full h-full object-cover transition-transform duration-6000 ease-out ${
-                    isActive ? "scale-100" : "scale-110"
-                  }`}
-                />
+                <picture className="w-full h-full block">
+                  {desktopSrc && (
+                    <source
+                      media="(min-width: 768px)"
+                      srcSet={desktopSrc}
+                    />
+                  )}
+                  {mobileSrc && (
+                    <source
+                      media="(max-width: 767px)"
+                      srcSet={mobileSrc}
+                    />
+                  )}
+                  <img
+                    src={fallbackSrc}
+                    alt={`Sneaker Poster ${index + 1}`}
+                    className="w-full h-full object-cover object-center"
+                  />
+                </picture>
               </div>
             </div>
           );
         })}
       </div>
 
-      {/* Navigation Arrows (Only show if multiple slides) */}
-      {slides.length > 1 && (
-        <>
-          <button
-            onClick={prevSlide}
-            className="absolute left-4 top-1/2 -translate-y-1/2 z-40 bg-black/30 hover:bg-lime-400 hover:text-black text-white p-2.5 rounded-full backdrop-blur-md border border-white/10 transition-all duration-300 cursor-pointer opacity-0 group-hover/carousel:opacity-100"
-            aria-label="Previous Slide"
-          >
-            <ChevronLeft size={22} />
-          </button>
-          <button
-            onClick={nextSlide}
-            className="absolute right-4 top-1/2 -translate-y-1/2 z-40 bg-black/30 hover:bg-lime-400 hover:text-black text-white p-2.5 rounded-full backdrop-blur-md border border-white/10 transition-all duration-300 cursor-pointer opacity-0 group-hover/carousel:opacity-100"
-            aria-label="Next Slide"
-          >
-            <ChevronRight size={22} />
-          </button>
-        </>
-      )}
+      {/* Navigation Arrows */}
+      <button
+        type="button"
+        onClick={prevSlide}
+        className="absolute left-3 sm:left-6 top-1/2 -translate-y-1/2 z-40 flex h-10 w-10 sm:h-12 sm:w-12 items-center justify-center rounded-full bg-black/70 text-white backdrop-blur-md border border-white/20 transition-all duration-200 hover:bg-lime-400 hover:text-black hover:border-lime-400 hover:scale-110 active:scale-95 shadow-2xl cursor-pointer"
+        aria-label="Previous Slide"
+      >
+        <ChevronLeft size={22} className="stroke-[2.5]" />
+      </button>
+      <button
+        type="button"
+        onClick={nextSlide}
+        className="absolute right-3 sm:right-6 top-1/2 -translate-y-1/2 z-40 flex h-10 w-10 sm:h-12 sm:w-12 items-center justify-center rounded-full bg-black/70 text-white backdrop-blur-md border border-white/20 transition-all duration-200 hover:bg-lime-400 hover:text-black hover:border-lime-400 hover:scale-110 active:scale-95 shadow-2xl cursor-pointer"
+        aria-label="Next Slide"
+      >
+        <ChevronRight size={22} className="stroke-[2.5]" />
+      </button>
 
-      {/* Indicators Dots (Only show if multiple slides) */}
-      {slides.length > 1 && (
-        <div className="absolute bottom-6 left-1/2 -translate-x-1/2 z-40 flex items-center gap-2.5">
-          {slides.map((_, index) => (
-            <button
-              key={index}
-              onClick={() => goToSlide(index)}
-              className={`transition-all duration-300 rounded-full cursor-pointer ${
-                index === currentIndex
-                  ? "w-8 h-2 bg-lime-400"
-                  : "w-2 h-2 bg-white/40 hover:bg-white/70"
-              }`}
-              aria-label={`Go to slide ${index + 1}`}
-            />
-          ))}
-        </div>
-      )}
+      {/* Indicators Dots */}
+      <div className="absolute bottom-3 sm:bottom-4 left-1/2 -translate-x-1/2 z-40 flex items-center gap-1.5 px-2 py-1 rounded-full bg-black/30 backdrop-blur-sm border border-white/5 opacity-60 hover:opacity-100 transition-opacity duration-300">
+        {slides.map((_, index) => (
+          <button
+            type="button"
+            key={index}
+            onClick={() => goToSlide(index)}
+            className={`transition-all duration-300 rounded-full cursor-pointer ${
+              index === currentIndex
+                ? "w-4 sm:w-5 h-1 bg-lime-400/90 shadow-[0_0_6px_rgba(163,230,53,0.5)]"
+                : "w-1.5 h-1 bg-white/25 hover:bg-white/60"
+            }`}
+            aria-label={`Go to slide ${index + 1}`}
+          />
+        ))}
+      </div>
     </div>
   );
 };

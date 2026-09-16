@@ -186,15 +186,19 @@ const StoriesCarousel = () => {
         `}
       </style>
 
-      <div className="stories-carousel flex gap-3 overflow-x-auto overflow-y-hidden py-3 scroll-smooth">
-        {stories.map((story, idx) => (
-          <StoryBubble
-            key={story.id}
-            story={story}
-            onClick={() => handleStoryClick(idx)}
-          />
-        ))}
-      </div>
+      <section className="w-full py-6 px-4 sm:px-8">
+        <div className="max-w-6xl mx-auto flex items-center justify-start sm:justify-center">
+          <div className="stories-carousel flex gap-4 sm:gap-6 overflow-x-auto overflow-y-hidden py-2 scroll-smooth items-center">
+            {stories.map((story, idx) => (
+              <StoryBubble
+                key={story.id}
+                story={story}
+                onClick={() => handleStoryClick(idx)}
+              />
+            ))}
+          </div>
+        </div>
+      </section>
 
       {/* Story Viewer Modal */}
       {activeStory && (

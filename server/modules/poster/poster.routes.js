@@ -19,15 +19,21 @@ router.use(authenticateAdmin);
 
 router.get("/admin", getAdminPosters);
 
+const posterUpload = upload.fields([
+  { name: "desktopImage", maxCount: 1 },
+  { name: "mobileImage", maxCount: 1 },
+  { name: "image", maxCount: 1 },
+]);
+
 router.post(
   "/",
-  upload.single("image"),
+  posterUpload,
   createPoster
 );
 
 router.put(
   "/:id",
-  upload.single("image"),
+  posterUpload,
   updatePoster
 );
 
