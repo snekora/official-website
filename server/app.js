@@ -6,6 +6,10 @@ const errorHandler = require("./middleware/error.middleware");
 
 const app = express();
 
+// Trust proxy is required since we will be deploying to Railway (a reverse proxy)
+// This ensures express-rate-limit correctly identifies the client IP instead of the proxy IP
+app.set("trust proxy", 1);
+
 // Standard Middlewares
 app.use(
   cors({
@@ -23,8 +27,11 @@ app.get("/", (req, res) => {
 });
 
 
+const { apiLimiter } = require("./middleware/rateLimiter.middleware");
+
 // ─── Route Mounting ──────────────────────────────────────────────
-app.use("/api", apiRouter);
+// Apply standard rate limiting to all API routes
+app.use("/api", apiLimiter, apiRouter);
 
 // ─── Global Error Handler ────────────────────────────────────────
 // Must be defined AFTER all routes — Express uses the 4-param signature
