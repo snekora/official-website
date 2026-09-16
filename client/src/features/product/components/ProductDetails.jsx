@@ -3,6 +3,7 @@ import { useParams, Link, useNavigate, useLocation } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import { fetchProductById, clearCurrentProduct } from "../redux/productSlice";
 import { addToCart } from "../../cart/redux/cartSlice";
+import { addToWishlist, removeFromWishlist } from "../../wishlist/redux/wishlistSlice";
 import { fetchAddresses } from "../../address/redux/addressSlice";
 import { ChevronLeft, Heart, Share, ChevronDown, Loader2, Minus, Plus } from "lucide-react";
 import { toast } from "react-toastify";
@@ -28,7 +29,28 @@ const ProductDetails = () => {
   } = useSelector((state) => state.product);
 
   const { isAuthenticated } = useSelector((state) => state.auth);
+  const { items: wishlistItems } = useSelector((state) => state.wishlist || {});
   const { addresses } = useSelector((state) => state.address);
+
+  const isInWishlist = wishlistItems?.some(
+    (item) => (item._id || item) === product?._id
+  );
+
+  const toggleWishlist = () => {
+    if (!isAuthenticated) {
+      toast.info("Please log in to save to your wishlist");
+      navigate("/login");
+      return;
+    }
+
+    if (!product?._id) return;
+
+    if (isInWishlist) {
+      dispatch(removeFromWishlist(product._id));
+    } else {
+      dispatch(addToWishlist(product._id));
+    }
+  };
 
   const [selectedVariant, setSelectedVariant] = useState(null);
   const [selectedSize, setSelectedSize] = useState(null);
@@ -186,10 +208,20 @@ const ProductDetails = () => {
           ]}
         />
         <div className="flex items-center gap-1">
-          <button className="p-2 hover:bg-white/10 rounded-full transition-colors">
-            <Heart size={22} strokeWidth={1.5} />
+          <button 
+            onClick={toggleWishlist}
+            className="p-2 hover:bg-white/10 rounded-full transition-colors cursor-pointer"
+            aria-label={isInWishlist ? "Remove from wishlist" : "Add to wishlist"}
+          >
+            <Heart 
+              size={22} 
+              strokeWidth={1.5} 
+              className={`transition-all duration-300 ${
+                isInWishlist ? "fill-red-500 text-red-500 scale-110" : "text-white hover:text-red-400"
+              }`} 
+            />
           </button>
-          <button className="p-2 hover:bg-white/10 rounded-full transition-colors">
+          <button className="p-2 hover:bg-white/10 rounded-full transition-colors cursor-pointer">
             <Share size={22} strokeWidth={1.5} />
           </button>
         </div>
@@ -484,14 +516,14 @@ const ProductDetails = () => {
             <button
               onClick={handleAddToCart}
               disabled={isOutOfStock || !selectedSize || addToCartLoading}
-              className="flex-1 bg-[#bdec5e] text-black font-semibold text-sm py-3.5 rounded-xl hover:bg-lime-400 transition-all duration-200 uppercase tracking-normal shadow-none active:scale-[0.99] disabled:opacity-50 disabled:cursor-not-allowed disabled:bg-zinc-700 disabled:text-zinc-400"
+              className="flex-1 bg-[#bdec5e] text-black font-semibold text-sm py-3.5 rounded-xl hover:bg-lime-400 transition-all duration-200 uppercase tracking-normal shadow-none active:scale-[0.99] disabled:opacity-50 disabled:cursor-not-allowed disabled:bg-zinc-700 disabled:text-zinc-400 cursor-pointer"
             >
               {addToCartLoading ? "Adding..." : isOutOfStock ? "Out of Stock" : "Add to Cart"}
             </button>
             <button
               onClick={handleBuyNow}
               disabled={isOutOfStock || !selectedSize || buyNowLoading}
-              className="flex-1 bg-zinc-900 border border-white/15 text-white font-semibold text-sm py-3.5 rounded-xl hover:bg-zinc-800 hover:border-white/25 transition-all duration-200 uppercase tracking-normal active:scale-[0.99] disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+              className="flex-1 bg-zinc-900 border border-white/15 text-white font-semibold text-sm py-3.5 rounded-xl hover:bg-zinc-800 hover:border-white/25 transition-all duration-200 uppercase tracking-normal active:scale-[0.99] disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 cursor-pointer"
             >
               {buyNowLoading ? (
                 <>
@@ -506,6 +538,21 @@ const ProductDetails = () => {
                   <span>Buy Now</span>
                 </>
               )}
+            </button>
+            <button
+              type="button"
+              onClick={toggleWishlist}
+              className={`px-4 py-3.5 rounded-xl border transition-all flex items-center justify-center cursor-pointer ${
+                isInWishlist
+                  ? "bg-red-500/10 border-red-500/30 text-red-400 hover:bg-red-500/20"
+                  : "bg-zinc-900 border-white/15 text-zinc-300 hover:border-white/30 hover:text-white"
+              }`}
+              title={isInWishlist ? "In Wishlist" : "Add to Wishlist"}
+            >
+              <Heart
+                size={20}
+                className={isInWishlist ? "fill-red-500 text-red-500" : ""}
+              />
             </button>
           </div>
 

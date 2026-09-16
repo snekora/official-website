@@ -7,6 +7,7 @@ import { useNavigate } from "react-router-dom";
 import { fetchSearchSuggestions } from "../features/product/redux/productSlice";
 import { useDebounce } from "../hooks/useDebounce";
 import api from "../services/api";
+import placeholderImg from "../assets/placeholder/placeholder.png";
 
 const SEARCH_HISTORY_KEY = "snekora_search_history";
 
@@ -237,17 +238,15 @@ const HeaderSearch = ({
                 onClick={() => handleProductClick(prod)}
                 className="flex items-center gap-3.5 group cursor-pointer py-1"
               >
-                {img ? (
-                  <img
-                    src={img}
-                    alt={prod.name}
-                    className="w-12 h-12 sm:w-14 sm:h-14 rounded-lg object-cover bg-zinc-900 border border-white/10 shrink-0 group-hover:border-lime-400/50 transition"
-                  />
-                ) : (
-                  <div className="w-12 h-12 sm:w-14 sm:h-14 rounded-lg bg-zinc-900 border border-white/10 shrink-0 flex items-center justify-center text-zinc-600">
-                    <Search size={18} />
-                  </div>
-                )}
+                <img
+                  src={img || placeholderImg}
+                  alt={prod.name}
+                  onError={(e) => {
+                    e.currentTarget.onerror = null;
+                    e.currentTarget.src = placeholderImg;
+                  }}
+                  className="w-12 h-12 sm:w-14 sm:h-14 rounded-lg object-cover bg-zinc-900 border border-white/10 shrink-0 group-hover:border-lime-400/50 transition"
+                />
                 <span className="text-xs sm:text-sm font-extrabold text-white uppercase tracking-wider group-hover:text-lime-400 transition leading-snug">
                   {prod.name}
                 </span>
