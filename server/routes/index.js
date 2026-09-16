@@ -12,9 +12,11 @@ const posterRoutes = require("../modules/poster/poster.routes");
 
 const router = express.Router();
 
+const { authLimiter } = require("../middleware/rateLimiter.middleware");
+
 // Mount all module routes here
-router.use("/auth", authRoutes);
-router.use("/auth/admin", adminAuthRoutes);
+router.use("/auth", authLimiter, authRoutes);
+router.use("/auth/admin", authLimiter, adminAuthRoutes);
 router.use("/address", addressRoutes);
 router.use("/products", productRoutes);
 router.use("/categories", categoryRoutes);
