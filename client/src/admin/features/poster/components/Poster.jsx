@@ -1,6 +1,12 @@
 import React, { useState, useEffect } from "react";
+import { useDispatch, useSelector } from "react-redux";
 import { toast } from "react-toastify";
-import api from "../../../../services/api";
+import {
+  fetchAdminPosters,
+  createPoster,
+  updatePoster,
+  deletePoster,
+} from "../redux/adminPosterSlice";
 import {
   Plus,
   Trash2,
@@ -8,63 +14,73 @@ import {
   Loader2,
   LayoutTemplate,
   Edit2,
+  Monitor,
+  Smartphone,
 } from "lucide-react";
 
 const PosterAdmin = () => {
-  const [posters, setPosters] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const dispatch = useDispatch();
+  const { posters, loading } = useSelector((state) => state.adminPoster);
+
   const [isAdding, setIsAdding] = useState(false);
   const [editingPoster, setEditingPoster] = useState(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   // Form State
-  const [imageFile, setImageFile] = useState(null);
+  const [desktopImageFile, setDesktopImageFile] = useState(null);
+  const [mobileImageFile, setMobileImageFile] = useState(null);
+  const [desktopPreview, setDesktopPreview] = useState(null);
+  const [mobilePreview, setMobilePreview] = useState(null);
   const [order, setOrder] = useState(0);
   const [isActive, setIsActive] = useState(true);
 
-  const fetchData = async () => {
-    try {
-      setLoading(true);
-      const postersRes = await api.get("/poster/admin");
-      
-      const fetchedPosters =
-        postersRes.data?.posters ||
-        (Array.isArray(postersRes.data?.data) ? postersRes.data.data : null) ||
-        (Array.isArray(postersRes.data) ? postersRes.data : []);
-      setPosters(Array.isArray(fetchedPosters) ? fetchedPosters : []);
-    } catch (error) {
-      toast.error("Failed to fetch posters");
-      console.error(error);
-    } finally {
-      setLoading(false);
-    }
-  };
-
   useEffect(() => {
-    fetchData();
-  }, []);
+    dispatch(fetchAdminPosters());
+  }, [dispatch]);
 
   const handleEdit = (poster) => {
     setEditingPoster(poster);
     setIsAdding(false);
     setOrder(poster.order || 0);
     setIsActive(poster.isActive !== false);
-    setImageFile(null);
+    setDesktopImageFile(null);
+    setMobileImageFile(null);
+    setDesktopPreview(null);
+    setMobilePreview(null);
   };
 
   const handleCancelForm = () => {
     setIsAdding(false);
     setEditingPoster(null);
-    setImageFile(null);
+    setDesktopImageFile(null);
+    setMobileImageFile(null);
+    setDesktopPreview(null);
+    setMobilePreview(null);
     setOrder(0);
     setIsActive(true);
+  };
+
+  const handleDesktopFileChange = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      setDesktopImageFile(file);
+      setDesktopPreview(URL.createObjectURL(file));
+    }
+  };
+
+  const handleMobileFileChange = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      setMobileImageFile(file);
+      setMobilePreview(URL.createObjectURL(file));
+    }
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    if (!editingPoster && !imageFile) {
-      return toast.error("Poster image is required.");
+    if (!editingPoster && !desktopImageFile && !mobileImageFile) {
+      return toast.error("Please upload at least one poster image.");
     }
 
     setIsSubmitting(true);
@@ -73,29 +89,26 @@ const PosterAdmin = () => {
       formData.append("order", order);
       formData.append("isActive", isActive);
 
-      if (imageFile) {
-        formData.append("image", imageFile);
+      if (desktopImageFile) {
+        formData.append("desktopImage", desktopImageFile);
+      }
+      if (mobileImageFile) {
+        formData.append("mobileImage", mobileImageFile);
       }
 
       if (editingPoster) {
-        await api.put(`/poster/${editingPoster._id}`, formData, {
-          headers: { "Content-Type": "multipart/form-data" },
-        });
+        await dispatch(
+          updatePoster({ id: editingPoster._id, formData })
+        ).unwrap();
         toast.success("Poster updated successfully!");
       } else {
-        await api.post("/poster", formData, {
-          headers: { "Content-Type": "multipart/form-data" },
-        });
+        await dispatch(createPoster(formData)).unwrap();
         toast.success("Poster created successfully!");
       }
 
       handleCancelForm();
-      fetchData();
     } catch (error) {
-      toast.error(
-        error.response?.data?.message ||
-          `Failed to ${editingPoster ? "update" : "create"} poster`
-      );
+      toast.error(error || `Failed to ${editingPoster ? "update" : "create"} poster`);
     } finally {
       setIsSubmitting(false);
     }
@@ -104,46 +117,112 @@ const PosterAdmin = () => {
   const handleDelete = async (id) => {
     if (!window.confirm("Are you sure you want to delete this poster?")) return;
     try {
-      await api.delete(`/poster/${id}`);
+      await dispatch(deletePoster(id)).unwrap();
       toast.success("Poster deleted successfully!");
-      fetchData();
     } catch (error) {
-      toast.error(error.response?.data?.message || "Failed to delete poster");
+      toast.error(error || "Failed to delete poster");
     }
   };
 
   if (isAdding || editingPoster) {
     return (
-      <div className="flex h-full flex-col p-6 md:p-8 text-white max-w-2xl mx-auto">
+      <div className="flex h-full w-full max-w-2xl mx-auto flex-col p-6 md:p-8 text-white">
         <h1 className="text-2xl font-bold mb-6 flex items-center gap-2">
           <LayoutTemplate className="text-lime-400" />
           {editingPoster ? "Edit Poster" : "Add New Poster"}
         </h1>
         <form
           onSubmit={handleSubmit}
-          className="space-y-5 bg-white/5 p-6 rounded-xl border border-white/10"
+          className="space-y-6 bg-white/5 p-6 rounded-2xl border border-white/10"
         >
-          <div>
-            <label className="block text-sm font-medium text-zinc-300 mb-1">
-              {editingPoster ? "Replace Image (Optional)" : "Poster Image"}
-            </label>
+          {/* Desktop Banner Upload (21:9) */}
+          <div className="p-4 rounded-xl bg-black/40 border border-white/10 space-y-3">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2 text-sm font-semibold text-white">
+                <Monitor size={18} className="text-lime-400" />
+                <span>Desktop Poster Image</span>
+              </div>
+              <span className="rounded bg-lime-400/20 px-2 py-0.5 text-[11px] font-bold text-lime-400 tracking-wider">
+                21:9 Aspect Ratio
+              </span>
+            </div>
+            <p className="text-xs text-zinc-400">
+              Recommended resolution: <strong className="text-zinc-200">2560 × 1080 px</strong> or <strong className="text-zinc-200">1920 × 820 px</strong> (Ultrawide format).
+            </p>
             <input
               type="file"
               accept="image/*"
-              onChange={(e) => setImageFile(e.target.files[0])}
-              className="w-full rounded-lg bg-black/50 border border-white/10 px-4 py-2 text-white text-sm file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-xs file:font-semibold file:bg-lime-400 file:text-black hover:file:bg-lime-300"
-              required={!editingPoster}
+              onChange={handleDesktopFileChange}
+              className="w-full rounded-lg bg-black/50 border border-white/10 px-4 py-2 text-white text-sm file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-xs file:font-semibold file:bg-lime-400 file:text-black hover:file:bg-lime-300 cursor-pointer"
             />
-            {editingPoster?.image?.url && (
-              <div className="mt-2 flex items-center gap-3">
-                <span className="text-xs text-zinc-400">Current Image:</span>
-                <img
-                  src={editingPoster.image.url}
-                  alt="Current poster"
-                  className="h-20 w-auto rounded-lg object-cover border border-white/10"
-                />
+            {desktopPreview ? (
+              <div className="mt-2 space-y-1">
+                <span className="text-xs text-zinc-400">New Desktop Preview:</span>
+                <div className="aspect-[21/9] w-full rounded-lg overflow-hidden border border-lime-400/40 bg-black">
+                  <img
+                    src={desktopPreview}
+                    alt="Desktop Preview"
+                    className="w-full h-full object-cover object-center"
+                  />
+                </div>
               </div>
-            )}
+            ) : (editingPoster?.desktopImage?.url || editingPoster?.image?.url) ? (
+              <div className="mt-2 space-y-1">
+                <span className="text-xs text-zinc-400">Current Desktop Poster:</span>
+                <div className="aspect-[21/9] w-full rounded-lg overflow-hidden border border-white/10 bg-black">
+                  <img
+                    src={editingPoster.desktopImage?.url || editingPoster.image?.url}
+                    alt="Current Desktop Poster"
+                    className="w-full h-full object-cover object-center"
+                  />
+                </div>
+              </div>
+            ) : null}
+          </div>
+
+          {/* Mobile Banner Upload (16:9) */}
+          <div className="p-4 rounded-xl bg-black/40 border border-white/10 space-y-3">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2 text-sm font-semibold text-white">
+                <Smartphone size={18} className="text-lime-400" />
+                <span>Mobile Poster Image</span>
+              </div>
+              <span className="rounded bg-lime-400/20 px-2 py-0.5 text-[11px] font-bold text-lime-400 tracking-wider">
+                16:9 Aspect Ratio
+              </span>
+            </div>
+            <p className="text-xs text-zinc-400">
+              Recommended resolution: <strong className="text-zinc-200">1920 × 1080 px</strong> or <strong className="text-zinc-200">1080 × 608 px</strong> (Standard widescreen format).
+            </p>
+            <input
+              type="file"
+              accept="image/*"
+              onChange={handleMobileFileChange}
+              className="w-full rounded-lg bg-black/50 border border-white/10 px-4 py-2 text-white text-sm file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-xs file:font-semibold file:bg-lime-400 file:text-black hover:file:bg-lime-300 cursor-pointer"
+            />
+            {mobilePreview ? (
+              <div className="mt-2 space-y-1">
+                <span className="text-xs text-zinc-400">New Mobile Preview:</span>
+                <div className="aspect-[16/9] w-64 rounded-lg overflow-hidden border border-lime-400/40 bg-black">
+                  <img
+                    src={mobilePreview}
+                    alt="Mobile Preview"
+                    className="w-full h-full object-cover object-center"
+                  />
+                </div>
+              </div>
+            ) : (editingPoster?.mobileImage?.url || editingPoster?.image?.url) ? (
+              <div className="mt-2 space-y-1">
+                <span className="text-xs text-zinc-400">Current Mobile Poster:</span>
+                <div className="aspect-[16/9] w-64 rounded-lg overflow-hidden border border-white/10 bg-black">
+                  <img
+                    src={editingPoster.mobileImage?.url || editingPoster.image?.url}
+                    alt="Current Mobile Poster"
+                    className="w-full h-full object-cover object-center"
+                  />
+                </div>
+              </div>
+            ) : null}
           </div>
 
           <div>
@@ -213,14 +292,14 @@ const PosterAdmin = () => {
   }
 
   return (
-    <div className="flex h-full flex-col p-6 md:p-8">
+    <div className="flex h-full w-full max-w-7xl mx-auto flex-col p-6 md:p-8">
       <div className="mb-6 flex flex-col gap-5 sm:flex-row sm:items-end sm:justify-between">
         <div>
           <h1 className="text-xl font-bold tracking-tight text-white sm:text-2xl flex items-center gap-2">
             <LayoutTemplate className="text-lime-400" /> Manage Posters
           </h1>
           <p className="mt-1 text-xs text-zinc-400">
-            Upload and manage hero banners for your storefront.
+            Upload and manage responsive hero banners (Desktop 21:9 and Mobile 16:9) for your storefront.
           </p>
         </div>
         <button
@@ -251,7 +330,8 @@ const PosterAdmin = () => {
             <table className="w-full border-collapse text-left text-white">
               <thead className="bg-white/[0.03]">
                 <tr className="border-b border-white/10 text-[11px] uppercase tracking-wider text-zinc-500">
-                  <th className="px-5 py-3.5 font-medium">Poster Image</th>
+                  <th className="px-5 py-3.5 font-medium">Desktop (21:9)</th>
+                  <th className="px-5 py-3.5 font-medium">Mobile (16:9)</th>
                   <th className="px-5 py-3.5 font-medium text-center">Order</th>
                   <th className="px-5 py-3.5 font-medium text-center">Status</th>
                   <th className="px-5 py-3.5 font-medium text-right">Actions</th>
@@ -259,60 +339,76 @@ const PosterAdmin = () => {
               </thead>
               <tbody>
                 {Array.isArray(posters) &&
-                  posters.map((poster) => (
-                    <tr
-                      key={poster._id}
-                      className="border-b border-white/[0.04] last:border-0 hover:bg-white/[0.03] transition"
-                    >
-                      <td className="px-5 py-4">
-                        <div className="flex items-center gap-4">
-                          {poster.image?.url ? (
+                  posters.map((poster) => {
+                    const desktopSrc = poster.desktopImage?.url || poster.image?.url;
+                    const mobileSrc = poster.mobileImage?.url || poster.image?.url;
+
+                    return (
+                      <tr
+                        key={poster._id}
+                        className="border-b border-white/[0.04] last:border-0 hover:bg-white/[0.03] transition"
+                      >
+                        <td className="px-5 py-4">
+                          {desktopSrc ? (
                             <img
-                              src={poster.image.url}
-                              alt="Poster"
-                              className="h-16 w-32 rounded-lg object-cover border border-white/10 bg-[#0c0c0d]"
+                              src={desktopSrc}
+                              alt="Desktop Poster"
+                              className="h-12 w-28 rounded-lg object-cover border border-white/10 bg-[#0c0c0d]"
                             />
                           ) : (
-                            <div className="flex h-16 w-32 items-center justify-center rounded-lg bg-[#0c0c0d] border border-white/10 text-zinc-500">
-                              <ImageIcon size={24} />
+                            <div className="flex h-12 w-28 items-center justify-center rounded-lg bg-[#0c0c0d] border border-white/10 text-zinc-500 text-[10px]">
+                              No Desktop Image
                             </div>
                           )}
-                        </div>
-                      </td>
-                      <td className="px-5 py-4 text-center text-xs text-zinc-300">
-                        {poster.order}
-                      </td>
-                      <td className="px-5 py-4 text-center">
-                        <span
-                          className={`inline-flex items-center rounded-md px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider ${
-                            poster.isActive
-                              ? "bg-lime-400/20 text-lime-400"
-                              : "bg-red-400/20 text-red-400"
-                          }`}
-                        >
-                          {poster.isActive ? "Active" : "Inactive"}
-                        </span>
-                      </td>
-                      <td className="px-5 py-4 text-right">
-                        <div className="flex items-center justify-end gap-2">
-                          <button
-                            onClick={() => handleEdit(poster)}
-                            className="p-2 rounded-lg bg-white/5 text-zinc-300 hover:bg-white/10 hover:text-white transition"
-                            title="Edit Poster"
+                        </td>
+                        <td className="px-5 py-4">
+                          {mobileSrc ? (
+                            <img
+                              src={mobileSrc}
+                              alt="Mobile Poster"
+                              className="h-12 w-20 rounded-lg object-cover border border-white/10 bg-[#0c0c0d]"
+                            />
+                          ) : (
+                            <div className="flex h-12 w-20 items-center justify-center rounded-lg bg-[#0c0c0d] border border-white/10 text-zinc-500 text-[10px]">
+                              No Mobile Image
+                            </div>
+                          )}
+                        </td>
+                        <td className="px-5 py-4 text-center text-xs text-zinc-300">
+                          {poster.order}
+                        </td>
+                        <td className="px-5 py-4 text-center">
+                          <span
+                            className={`inline-flex items-center rounded-md px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider ${
+                              poster.isActive
+                                ? "bg-lime-400/20 text-lime-400"
+                                : "bg-red-400/20 text-red-400"
+                            }`}
                           >
-                            <Edit2 size={16} />
-                          </button>
-                          <button
-                            onClick={() => handleDelete(poster._id)}
-                            className="p-2 rounded-lg bg-red-500/10 text-red-400 hover:bg-red-500/20 transition"
-                            title="Delete Poster"
-                          >
-                            <Trash2 size={16} />
-                          </button>
-                        </div>
-                      </td>
-                    </tr>
-                  ))}
+                            {poster.isActive ? "Active" : "Inactive"}
+                          </span>
+                        </td>
+                        <td className="px-5 py-4 text-right">
+                          <div className="flex items-center justify-end gap-2">
+                            <button
+                              onClick={() => handleEdit(poster)}
+                              className="p-2 rounded-lg bg-white/5 text-zinc-300 hover:bg-white/10 hover:text-white transition"
+                              title="Edit Poster"
+                            >
+                              <Edit2 size={16} />
+                            </button>
+                            <button
+                              onClick={() => handleDelete(poster._id)}
+                              className="p-2 rounded-lg bg-red-500/10 text-red-400 hover:bg-red-500/20 transition"
+                              title="Delete Poster"
+                            >
+                              <Trash2 size={16} />
+                            </button>
+                          </div>
+                        </td>
+                      </tr>
+                    );
+                  })}
               </tbody>
             </table>
           </div>

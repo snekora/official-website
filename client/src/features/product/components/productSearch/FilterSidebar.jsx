@@ -65,12 +65,40 @@ const FilterSidebar = ({ onClose }) => {
     if (onClose) onClose();
   };
 
+  const currentGender = searchParams.get("gender");
   const currentBrand = searchParams.get("brand");
   const currentSize = searchParams.get("size");
   const inStock = searchParams.get("inStock") === "true";
 
   return (
     <div className="space-y-8 pb-8">
+      {/* Gender Filter */}
+      <div>
+        <h3 className="text-sm font-bold uppercase tracking-wider text-gray-400 mb-3">
+          Gender
+        </h3>
+        <div className="grid grid-cols-2 gap-2">
+          {["Men", "Women", "Unisex", "Kids"].map((gender) => {
+            const isSelected =
+              currentGender?.toLowerCase() === gender.toLowerCase();
+            return (
+              <button
+                key={gender}
+                type="button"
+                onClick={() => handleFilterChange("gender", gender)}
+                className={`py-2.5 px-3 rounded-xl text-xs font-bold tracking-wider uppercase transition-all duration-200 border text-center cursor-pointer ${
+                  isSelected
+                    ? "bg-lime-400 text-black border-lime-400 shadow-[0_0_12px_rgba(163,230,53,0.3)]"
+                    : "bg-[#18181b] text-zinc-300 border-white/5 hover:border-white/20 hover:text-white"
+                }`}
+              >
+                {gender}
+              </button>
+            );
+          })}
+        </div>
+      </div>
+
       {/* Brands */}
       <div>
         <h3 className="text-sm font-bold uppercase tracking-wider text-gray-400 mb-4">

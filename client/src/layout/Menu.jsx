@@ -31,12 +31,10 @@ const NavigationMenu = ({ isOpen, onClose, onOpenSearch }) => {
   };
 
   const shopLinks = [
-    "Home",
-    "Men",
-    "Women",
-    "Sneakers",
-    "New Arrivals",
-    "Sale",
+    { label: "Home", path: "/" },
+    { label: "Men", path: "/products?gender=Men" },
+    { label: "Women", path: "/products?gender=Women" },
+    { label: "New Arrivals", path: "/products?sort=newest" },
   ];
   const helpLinks = ["Contact", "Shipping", "Returns"];
   const followLinks = ["Instagram", "Facebook", "X"];
@@ -85,18 +83,19 @@ const NavigationMenu = ({ isOpen, onClose, onOpenSearch }) => {
                 Shop
               </h4>
               {shopLinks.map((item, i) => (
-                <button
-                  key={item}
+                <Link
+                  key={item.label}
+                  to={item.path}
                   onClick={onClose}
-                  className={`text-left text-xl md:text-3xl font-bold text-white hover:text-lime-400 transition-all duration-500 ${
+                  className={`text-left text-xl md:text-3xl font-bold text-white hover:text-lime-400 transition-all duration-500 block ${
                     isOpen
                       ? "translate-y-0 opacity-100"
                       : "translate-y-4 opacity-0"
                   }`}
                   style={{ transitionDelay: `${i * 50}ms` }}
                 >
-                  {item}
-                </button>
+                  {item.label}
+                </Link>
               ))}
             </div>
 

@@ -49,6 +49,7 @@ const searchProducts = async (params) => {
     color,
     size,
     inStock,
+    gender,
     sort,
     page,
     limit,
@@ -109,6 +110,7 @@ const searchProducts = async (params) => {
     color,
     size,
     inStock,
+    gender,
   });
   pipeline.push(...filterStages);
 

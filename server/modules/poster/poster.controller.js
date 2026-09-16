@@ -10,15 +10,35 @@ const { uploadImage, deleteImage } = require("../../services/cloudinaryService")
 const createPoster = asyncHandler(async (req, res) => {
   const { order, isActive } = req.body;
 
-  if (!req.file) {
-    throw new ApiError(400, "Poster image is required");
+  const desktopFile = req.files?.desktopImage?.[0] || req.files?.image?.[0] || req.file;
+  const mobileFile = req.files?.mobileImage?.[0];
+
+  if (!desktopFile && !mobileFile) {
+    throw new ApiError(400, "At least one poster image (desktop or mobile) is required");
   }
 
-  // Upload image
-  const imageData = await uploadImage(req.file.buffer, "snekora/posters");
+  let desktopImageData = null;
+  let mobileImageData = null;
+
+  if (desktopFile) {
+    desktopImageData = await uploadImage(desktopFile.buffer, "snekora/posters");
+  }
+  if (mobileFile) {
+    mobileImageData = await uploadImage(mobileFile.buffer, "snekora/posters");
+  }
+
+  // Fallback if only one of them was provided
+  if (!mobileImageData && desktopImageData) {
+    mobileImageData = desktopImageData;
+  }
+  if (!desktopImageData && mobileImageData) {
+    desktopImageData = mobileImageData;
+  }
 
   const poster = await Poster.create({
-    image: imageData,
+    desktopImage: desktopImageData,
+    mobileImage: mobileImageData,
+    image: desktopImageData,
     order: order ? Number(order) : 0,
     isActive: isActive === "true" || isActive === true,
   });
@@ -65,13 +85,28 @@ const updatePoster = asyncHandler(async (req, res) => {
     poster.isActive = isActive === "true" || isActive === true;
   }
 
-  // If new image uploaded, replace old image
-  if (req.file) {
-    if (poster.image && poster.image.publicId) {
+  const desktopFile = req.files?.desktopImage?.[0] || req.files?.image?.[0] || req.file;
+  const mobileFile = req.files?.mobileImage?.[0];
+
+  // If new desktop image uploaded
+  if (desktopFile) {
+    if (poster.desktopImage?.publicId) {
+      await deleteImage(poster.desktopImage.publicId);
+    } else if (poster.image?.publicId) {
       await deleteImage(poster.image.publicId);
     }
-    const imageData = await uploadImage(req.file.buffer, "snekora/posters");
-    poster.image = imageData;
+    const desktopImageData = await uploadImage(desktopFile.buffer, "snekora/posters");
+    poster.desktopImage = desktopImageData;
+    poster.image = desktopImageData;
+  }
+
+  // If new mobile image uploaded
+  if (mobileFile) {
+    if (poster.mobileImage?.publicId && poster.mobileImage.publicId !== poster.desktopImage?.publicId) {
+      await deleteImage(poster.mobileImage.publicId);
+    }
+    const mobileImageData = await uploadImage(mobileFile.buffer, "snekora/posters");
+    poster.mobileImage = mobileImageData;
   }
 
   await poster.save();
@@ -89,8 +124,17 @@ const deletePoster = asyncHandler(async (req, res) => {
     throw new ApiError(404, "Poster not found");
   }
 
-  // Delete resource from Cloudinary
-  if (poster.image && poster.image.publicId) {
+  // Delete resources from Cloudinary safely avoiding duplicates
+  const deletedIds = new Set();
+  if (poster.desktopImage?.publicId) {
+    deletedIds.add(poster.desktopImage.publicId);
+    await deleteImage(poster.desktopImage.publicId);
+  }
+  if (poster.mobileImage?.publicId && !deletedIds.has(poster.mobileImage.publicId)) {
+    deletedIds.add(poster.mobileImage.publicId);
+    await deleteImage(poster.mobileImage.publicId);
+  }
+  if (poster.image?.publicId && !deletedIds.has(poster.image.publicId)) {
     await deleteImage(poster.image.publicId);
   }
   

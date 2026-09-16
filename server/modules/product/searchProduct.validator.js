@@ -52,6 +52,22 @@ const validateSearchParams = (query) => {
     sanitized.search = "";
   }
 
+  // ── gender ───────────────────────────────────────────────────
+  if (query.gender !== undefined && query.gender !== "") {
+    const gender = String(query.gender).trim();
+    const VALID_GENDERS = ["Men", "Women", "Unisex", "Kids"];
+    const matchedGender = VALID_GENDERS.find(
+      (g) => g.toLowerCase() === gender.toLowerCase()
+    );
+    if (!matchedGender) {
+      errors.push(
+        `Invalid gender option "${query.gender}". Valid options: ${VALID_GENDERS.join(", ")}`
+      );
+    } else {
+      sanitized.gender = matchedGender;
+    }
+  }
+
   // ── category (ObjectId or slug) ─────────────────────────────
   if (query.category !== undefined && query.category !== "") {
     sanitized.category = String(query.category).trim();

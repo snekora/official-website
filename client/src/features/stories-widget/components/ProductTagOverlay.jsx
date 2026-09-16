@@ -1,10 +1,23 @@
 import React from "react";
+import { Link, useNavigate } from "react-router-dom";
 
-const ProductTagOverlay = ({ product, onAddToCart }) => {
+const ProductTagOverlay = ({ product, onClose }) => {
+  const navigate = useNavigate();
   if (!product) return null;
 
+  const productUrl = `/product/${product.slug || product.id || product._id}`;
+
+  const handleShopNow = (e) => {
+    e.stopPropagation();
+    if (onClose) onClose();
+    navigate(productUrl);
+  };
+
   return (
-    <div className="absolute bottom-5 left-1/2 z-10 flex w-[90%] max-w-[360px] -translate-x-1/2 animate-[slideUp_.3s_ease] flex-col gap-2">
+    <div
+      onClick={(e) => e.stopPropagation()}
+      className="absolute bottom-5 left-1/2 z-10 flex w-[90%] max-w-[360px] -translate-x-1/2 animate-[slideUp_.3s_ease] flex-col gap-2"
+    >
       {/* Custom Animation */}
       <style>
         {`
@@ -22,34 +35,43 @@ const ProductTagOverlay = ({ product, onAddToCart }) => {
       </style>
 
       {/* Product Card */}
-      <div className="flex items-center gap-3 rounded bg-white/95 p-2 shadow-lg">
+      <Link
+        to={productUrl}
+        onClick={() => {
+          if (onClose) onClose();
+        }}
+        className="flex items-center gap-3 rounded-xl bg-black/85 backdrop-blur-md border border-white/15 p-2.5 shadow-2xl transition hover:bg-black/95 hover:border-lime-400/40 group cursor-pointer"
+      >
         <img
           src={product.image}
           alt={product.title}
-          className="h-[60px] w-[60px] flex-shrink-0 rounded border border-gray-200 object-cover"
+          className="h-[54px] w-[54px] flex-shrink-0 rounded-lg border border-white/10 object-cover bg-zinc-900"
         />
 
-        <div className="flex flex-1 flex-col gap-1.5">
-          <h4 className="line-clamp-1 text-[10px] font-bold uppercase tracking-wide text-gray-500">
+        <div className="flex flex-1 flex-col gap-1 min-w-0">
+          <h4 className="truncate text-xs font-bold uppercase tracking-wide text-white group-hover:text-lime-300 transition-colors">
             {product.title}
           </h4>
 
           <div className="flex items-center gap-2">
-            <span className="text-xs text-gray-400 line-through">
-              Rs. {(product.price * 1.3).toFixed(2)}
-            </span>
+            {product.originalPrice && product.originalPrice > product.price ? (
+              <span className="text-[11px] text-zinc-400 line-through">
+                Rs. {product.originalPrice.toLocaleString()}
+              </span>
+            ) : null}
 
-            <span className="text-sm font-bold text-black">
-              Rs. {product.price.toFixed(2)}
+            <span className="text-xs font-extrabold text-lime-400">
+              Rs. {product.price?.toLocaleString ? product.price.toLocaleString() : product.price}
             </span>
           </div>
         </div>
-      </div>
+      </Link>
 
       {/* Shop Button */}
       <button
-        onClick={() => onAddToCart(product.id)}
-        className="w-full rounded bg-[#9AE600] px-4 py-3 text-[13px] font-bold text-black transition hover:bg-[#88cc00] active:scale-[0.98]"
+        type="button"
+        onClick={handleShopNow}
+        className="w-full rounded-xl bg-lime-400 py-3 text-[13px] font-bold text-black transition hover:bg-lime-300 hover:shadow-[0_0_15px_rgba(163,230,53,0.4)] active:scale-[0.98] cursor-pointer"
       >
         Shop Now
       </button>

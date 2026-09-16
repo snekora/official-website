@@ -138,7 +138,7 @@ const StoriesAdmin = () => {
 
   if (isAdding || editingStory) {
     return (
-      <div className="flex h-full flex-col p-6 md:p-8 text-white max-w-2xl mx-auto">
+      <div className="flex h-full w-full max-w-2xl mx-auto flex-col p-6 md:p-8 text-white">
         <h1 className="text-2xl font-bold mb-6 flex items-center gap-2">
           <PlaySquare className="text-lime-400" />
           {editingStory ? "Edit Story" : "Upload New Story"}
@@ -283,7 +283,7 @@ const StoriesAdmin = () => {
   }
 
   return (
-    <div className="flex h-full flex-col p-6 md:p-8">
+    <div className="flex h-full w-full max-w-7xl mx-auto flex-col p-6 md:p-8">
       <div className="mb-6 flex flex-col gap-5 sm:flex-row sm:items-end sm:justify-between">
         <div>
           <h1 className="text-xl font-bold tracking-tight text-white sm:text-2xl flex items-center gap-2">
