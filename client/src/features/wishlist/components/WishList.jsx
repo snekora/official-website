@@ -16,7 +16,7 @@ import Breadcrumbs from "../../../components/Breadcrumbs";
 import { useDispatch, useSelector } from "react-redux";
 import { fetchWishlist, removeFromWishlist, clearWishlist } from "../redux/wishlistSlice";
 import { addToCart } from "../../cart/redux/cartSlice";
-import { SneakerPlaceholder } from "../../../components/ProductCard";
+import placeholderImg from "../../../assets/placeholder/placeholder.png";
 import { toast } from "react-toastify";
 import { motion, AnimatePresence } from "framer-motion";
 
@@ -177,17 +177,15 @@ const WishList = () => {
                     {/* Item Image */}
                     <div className="w-24 h-24 rounded-xl overflow-hidden bg-[#1f1f1f] shrink-0 relative flex items-center justify-center">
                       <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_50%,#27272a_0%,#1f1f1f_100%)] -z-10" />
-                      {image ? (
-                        <img
-                          src={image}
-                          alt={item.name}
-                          className="w-full h-full object-cover mix-blend-screen opacity-90 group-hover:scale-105 transition-transform duration-500"
-                        />
-                      ) : (
-                        <div className="scale-75">
-                          <SneakerPlaceholder color={accent} />
-                        </div>
-                      )}
+                      <img
+                        src={image || placeholderImg}
+                        alt={item.name}
+                        onError={(e) => {
+                          e.currentTarget.onerror = null;
+                          e.currentTarget.src = placeholderImg;
+                        }}
+                        className="w-full h-full object-cover mix-blend-screen opacity-90 group-hover:scale-105 transition-transform duration-500"
+                      />
                     </div>
 
                     {/* Item Details */}
@@ -275,15 +273,15 @@ const WishList = () => {
 
               <div className="flex items-center gap-4 mb-6">
                 <div className="w-16 h-16 rounded-xl bg-zinc-900 border border-white/10 overflow-hidden flex items-center justify-center shrink-0">
-                  {selectedVariant?.images?.[0]?.url ? (
-                    <img
-                      src={selectedVariant.images[0].url}
-                      alt={selectedProductForCart.name}
-                      className="w-full h-full object-cover mix-blend-screen"
-                    />
-                  ) : (
-                    <SneakerPlaceholder color={selectedVariant?.color?.hex || "#8b8f96"} />
-                  )}
+                  <img
+                    src={selectedVariant?.images?.[0]?.url || placeholderImg}
+                    alt={selectedProductForCart.name}
+                    onError={(e) => {
+                      e.currentTarget.onerror = null;
+                      e.currentTarget.src = placeholderImg;
+                    }}
+                    className="w-full h-full object-cover mix-blend-screen"
+                  />
                 </div>
                 <div>
                   <h3 className="text-base font-semibold text-white leading-snug">

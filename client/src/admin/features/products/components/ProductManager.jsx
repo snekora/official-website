@@ -6,6 +6,7 @@ import { Package, Plus, Trash2, Edit2, Loader2, Image as ImageIcon, Layers } fro
 import ProductForm from "./ProductForm";
 import VariantManager from "./VariantManager";
 import ConfirmDeleteProductModal from "../modal/ConfirmDeleteProductModal";
+import placeholderImg from "../../../../assets/placeholder/placeholder.png";
 
 const ProductManager = () => {
   const dispatch = useDispatch();
@@ -115,17 +116,15 @@ const ProductManager = () => {
                     >
                       <td className="px-5 py-4">
                         <div className="flex items-center gap-4">
-                          {firstImage ? (
-                            <img
-                              src={firstImage}
-                              alt={prod.name}
-                              className="h-12 w-12 rounded-xl object-cover border border-white/10 bg-[#0c0c0d]"
-                            />
-                          ) : (
-                            <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-[#0c0c0d] border border-white/10 text-zinc-500">
-                              <ImageIcon size={18} />
-                            </div>
-                          )}
+                          <img
+                            src={firstImage || placeholderImg}
+                            alt={prod.name}
+                            onError={(e) => {
+                              e.currentTarget.onerror = null;
+                              e.currentTarget.src = placeholderImg;
+                            }}
+                            className="h-12 w-12 rounded-xl object-cover border border-white/10 bg-[#0c0c0d]"
+                          />
                           <div>
                             <p className="text-xs font-semibold text-white">{prod.name}</p>
                             <p className="text-[11px] text-zinc-400 mt-0.5 max-w-[200px] truncate">

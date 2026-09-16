@@ -3,6 +3,7 @@ import { X, ChevronLeft, ChevronRight, Pause, Play, Volume2, VolumeX, Loader2 } 
 import StoryBubble from "./StoryBubble";
 import ProductTagOverlay from "./ProductTagOverlay";
 import api from "../../../services/api";
+import placeholderImg from "../../../assets/placeholder/placeholder.png";
 
 const StoriesCarousel = () => {
   const [stories, setStories] = useState([]);
@@ -38,7 +39,7 @@ const StoriesCarousel = () => {
               title: story.product.name,
               price: story.product.price,
               originalPrice: story.product.originalPrice,
-              image: firstImage || "https://via.placeholder.com/60", // fallback
+              image: firstImage || placeholderImg,
             };
           }
 

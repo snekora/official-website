@@ -5,6 +5,7 @@ import { toast } from "react-toastify";
 import { ArrowLeft, Plus, Layers, Trash2, Edit2 } from "lucide-react";
 import VariantForm from "./VariantForm";
 import ConfirmDeleteProductModal from "../modal/ConfirmDeleteProductModal";
+import placeholderImg from "../../../../assets/placeholder/placeholder.png";
 
 const VariantManager = ({ product, onClose }) => {
   const dispatch = useDispatch();
@@ -111,14 +112,26 @@ const VariantManager = ({ product, onClose }) => {
                     </td>
                     <td className="px-5 py-4">
                       <div className="flex -space-x-2 overflow-hidden">
-                        {variant.images?.slice(0, 4).map((img, i) => (
+                        {variant.images?.length > 0 ? (
+                          variant.images.slice(0, 4).map((img, i) => (
+                            <img
+                              key={i}
+                              src={img.url || placeholderImg}
+                              alt=""
+                              onError={(e) => {
+                                e.currentTarget.onerror = null;
+                                e.currentTarget.src = placeholderImg;
+                              }}
+                              className="inline-block h-10 w-10 rounded-lg border-2 border-[#111113] object-cover bg-zinc-800"
+                            />
+                          ))
+                        ) : (
                           <img
-                            key={i}
-                            src={img.url}
+                            src={placeholderImg}
                             alt=""
                             className="inline-block h-10 w-10 rounded-lg border-2 border-[#111113] object-cover bg-zinc-800"
                           />
-                        ))}
+                        )}
                         {variant.images?.length > 4 && (
                           <div className="flex h-10 w-10 items-center justify-center rounded-lg border-2 border-[#111113] bg-zinc-800 text-xs font-medium text-zinc-300">
                             +{variant.images.length - 4}

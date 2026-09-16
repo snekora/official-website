@@ -1,5 +1,6 @@
 import React from "react";
 import { Link, useNavigate } from "react-router-dom";
+import placeholderImg from "../../../assets/placeholder/placeholder.png";
 
 const ProductTagOverlay = ({ product, onClose }) => {
   const navigate = useNavigate();
@@ -43,8 +44,12 @@ const ProductTagOverlay = ({ product, onClose }) => {
         className="flex items-center gap-3 rounded-xl bg-black/85 backdrop-blur-md border border-white/15 p-2.5 shadow-2xl transition hover:bg-black/95 hover:border-lime-400/40 group cursor-pointer"
       >
         <img
-          src={product.image}
+          src={product.image || placeholderImg}
           alt={product.title}
+          onError={(e) => {
+            e.currentTarget.onerror = null;
+            e.currentTarget.src = placeholderImg;
+          }}
           className="h-[54px] w-[54px] flex-shrink-0 rounded-lg border border-white/10 object-cover bg-zinc-900"
         />
 

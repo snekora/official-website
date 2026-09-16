@@ -7,6 +7,7 @@ import {
   ZoomIn,
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
+import placeholderImg from "../../../assets/placeholder/placeholder.png";
 
 const ProductImageCarousel = ({ images = [], productName = "Product" }) => {
   const [[currentImageIndex, direction], setPage] = useState([0, 0]);
@@ -187,9 +188,13 @@ const ProductImageCarousel = ({ images = [], productName = "Product" }) => {
                   onClick={() => setIsLightboxOpen(true)}
                 >
                   <img
-                    src={images[currentImageIndex]?.url}
+                    src={images[currentImageIndex]?.url || placeholderImg}
                     alt={`${productName} - ${currentImageIndex + 1}`}
                     draggable={false}
+                    onError={(e) => {
+                      e.currentTarget.onerror = null;
+                      e.currentTarget.src = placeholderImg;
+                    }}
                     style={
                       isHovered
                         ? {
@@ -208,8 +213,12 @@ const ProductImageCarousel = ({ images = [], productName = "Product" }) => {
               </AnimatePresence>
             </div>
           ) : (
-            <div className="w-full h-full flex items-center justify-center text-zinc-600 text-sm">
-              No Image Available
+            <div className="w-full h-full flex items-center justify-center p-8 bg-zinc-900">
+              <img
+                src={placeholderImg}
+                alt={productName}
+                className="w-full h-full object-contain mix-blend-screen opacity-75"
+              />
             </div>
           )}
 

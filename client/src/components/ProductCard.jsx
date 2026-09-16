@@ -3,33 +3,14 @@ import { Link, useNavigate } from "react-router-dom";
 import { Heart } from "lucide-react";
 import { useDispatch, useSelector } from "react-redux";
 import { addToWishlist, removeFromWishlist } from "../features/wishlist/redux/wishlistSlice";
+import placeholderImg from "../assets/placeholder/placeholder.png";
 
-export const SneakerPlaceholder = ({ color }) => (
-  <svg
-    viewBox="0 0 140 90"
-    width="72%"
-    className="drop-shadow-[0_8px_16px_rgba(0,0,0,0.5)]"
-  >
-    <path
-      d="M8 68 Q6 78 20 80 L120 80 Q132 80 134 70 L132 62 Q128 58 118 60 L110 68 L25 68 Z"
-      fill="#0a0a0a"
-    />
-    <path
-      d="M15 68 L18 45 Q22 28 45 24 L85 20 Q108 19 118 34 L128 55 L130 62 L20 66 Z"
-      fill={color || "#8b8f96"}
-      opacity="0.92"
-    />
-    <path
-      d="M15 68 L18 50 Q20 40 30 38 L45 40 L40 68 Z"
-      fill={color || "#8b8f96"}
-      opacity="0.55"
-    />
-    <g stroke="#000" strokeWidth="2" opacity="0.35">
-      <line x1="55" y1="30" x2="70" y2="42" />
-      <line x1="62" y1="26" x2="77" y2="38" />
-      <line x1="69" y1="23" x2="84" y2="35" />
-    </g>
-  </svg>
+export const SneakerPlaceholder = () => (
+  <img
+    src={placeholderImg}
+    alt="Product placeholder"
+    className="w-full h-full object-cover mix-blend-screen opacity-85"
+  />
 );
 
 const ProductCard = ({ product }) => {
@@ -61,7 +42,6 @@ const ProductCard = ({ product }) => {
   // Derive an image and a badge
   const firstVariant = variants?.[0];
   const image = firstVariant?.images?.[0]?.url;
-  const accent = firstVariant?.color?.hex || "#8b8f96";
   const badge = "New Drop"; // Compute this dynamically if desired
 
   return (
@@ -78,7 +58,7 @@ const ProductCard = ({ product }) => {
 
         <button
           onClick={toggleWishlist}
-          className="absolute top-3 right-3 z-10 p-2 rounded-full bg-black/40 backdrop-blur-md border border-white/10 text-white hover:bg-black/60 transition-colors"
+          className="absolute top-3 right-3 z-10 p-2 rounded-full bg-black/40 backdrop-blur-md border border-white/10 text-white hover:bg-black/60 transition-colors cursor-pointer"
           aria-label={isInWishlist ? "Remove from wishlist" : "Add to wishlist"}
         >
           <Heart 
@@ -87,15 +67,15 @@ const ProductCard = ({ product }) => {
           />
         </button>
 
-        {image ? (
-          <img
-            src={image}
-            alt={name}
-            className="w-full h-full object-cover transition-transform duration-500 ease-out group-hover:scale-110"
-          />
-        ) : (
-          <SneakerPlaceholder color={accent} />
-        )}
+        <img
+          src={image || placeholderImg}
+          alt={name}
+          onError={(e) => {
+            e.currentTarget.onerror = null;
+            e.currentTarget.src = placeholderImg;
+          }}
+          className="w-full h-full object-cover transition-transform duration-500 ease-out group-hover:scale-110"
+        />
       </div>
 
       <div className="mt-4 px-1 pb-1">

@@ -12,6 +12,7 @@ import { openCartWhatsApp } from '../../../services/whatsappOrder';
 import { toast } from 'react-toastify';
 import { Loader2 } from 'lucide-react';
 import Breadcrumbs from '../../../components/Breadcrumbs';
+import placeholderImg from '../../../assets/placeholder/placeholder.png';
 
 const Lottie = LottieComponent.default || LottieComponent;
 
@@ -171,8 +172,12 @@ const Cart = () => {
                     <Link to={productLink} state={{ from: "cart" }} className="w-24 h-24 rounded-xl overflow-hidden bg-[#1f1f1f] shrink-0 relative group cursor-pointer">
                       <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_50%,#27272a_0%,#1f1f1f_100%)] -z-10" />
                       <img 
-                        src={image} 
+                        src={image || placeholderImg} 
                         alt={product.name} 
+                        onError={(e) => {
+                          e.currentTarget.onerror = null;
+                          e.currentTarget.src = placeholderImg;
+                        }}
                         className="w-full h-full object-cover mix-blend-screen opacity-90 group-hover:scale-105 transition-transform duration-300"
                       />
                     </Link>
