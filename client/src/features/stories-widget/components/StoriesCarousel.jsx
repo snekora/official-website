@@ -34,8 +34,10 @@ const StoriesCarousel = () => {
             
             mappedProduct = {
               id: story.product._id,
+              slug: story.product.slug || story.product._id,
               title: story.product.name,
               price: story.product.price,
+              originalPrice: story.product.originalPrice,
               image: firstImage || "https://via.placeholder.com/60", // fallback
             };
           }
@@ -273,7 +275,7 @@ const StoriesCarousel = () => {
             {activeStory.product && (
               <ProductTagOverlay
                 product={activeStory.product}
-                onAddToCart={handleAddToCart}
+                onClose={closeStory}
               />
             )}
           </div>
