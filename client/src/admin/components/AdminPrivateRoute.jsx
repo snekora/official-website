@@ -4,7 +4,7 @@ import { Navigate } from "react-router-dom";
 
 /**
  * Protects admin routes that require admin authentication.
- * Renders children when admin is authenticated, redirects to /admin/login otherwise.
+ * Renders children when admin is authenticated, redirects to /mQ8vR2kX9Lp7N4/login otherwise.
  * Returns null while the initial session check is in progress.
  */
 const AdminPrivateRoute = ({ children }) => {
@@ -14,7 +14,7 @@ const AdminPrivateRoute = ({ children }) => {
 
   if (!sessionChecked) return null;
 
-  return isAuthenticated ? children : <Navigate to="/admin/login" replace />;
+  return isAuthenticated ? children : <Navigate to="/mQ8vR2kX9Lp7N4/login" replace />;
 };
 
 export default AdminPrivateRoute;
