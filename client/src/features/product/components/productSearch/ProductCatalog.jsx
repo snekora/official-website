@@ -19,6 +19,12 @@ const ProductCatalog = () => {
 
   const currentSearch = searchParams.get("search") || "";
   const currentSort = searchParams.get("sort") || "newest";
+  const currentGender = searchParams.get("gender") || "";
+  const currentBrand = searchParams.get("brand") || "";
+  const currentSize = searchParams.get("size") || "";
+  const minPrice = searchParams.get("minPrice") || "";
+  const maxPrice = searchParams.get("maxPrice") || "";
+  const inStock = searchParams.get("inStock") === "true";
 
   // Build query object from URL params
   const queryParams = Object.fromEntries([...searchParams]);
@@ -28,11 +34,15 @@ const ProductCatalog = () => {
     window.scrollTo({ top: 0, behavior: "smooth" });
   }, [dispatch, searchParams]);
 
-  const clearSearch = () => {
+  const removeFilterParam = (key) => {
     const newParams = new URLSearchParams(searchParams);
-    newParams.delete("search");
-    newParams.set("page", "1"); // Reset to page 1
+    newParams.delete(key);
+    newParams.set("page", "1");
     setSearchParams(newParams);
+  };
+
+  const clearAllFilters = () => {
+    setSearchParams({});
   };
 
   const handleSortChange = (e) => {
@@ -42,6 +52,64 @@ const ProductCatalog = () => {
     setSearchParams(newParams);
   };
 
+  const getPageTitle = () => {
+    if (currentSearch) return `Search Results`;
+    if (currentGender) {
+      if (currentGender.toLowerCase() === "men") return "Men's Sneakers & Shoes";
+      if (currentGender.toLowerCase() === "women") return "Women's Sneakers & Shoes";
+      return `${currentGender}'s Collection`;
+    }
+    if (currentSort === "newest" && !currentBrand && !searchParams.get("category")) {
+      return "New Arrivals";
+    }
+    if (currentBrand) return `${currentBrand.charAt(0).toUpperCase() + currentBrand.slice(1)} Sneakers`;
+    return "All Products";
+  };
+
+  const getBreadcrumbItems = () => {
+    const items = [{ label: "Products", path: "/products" }];
+    if (currentGender) {
+      items.push({ label: currentGender });
+    } else if (currentSort === "newest" && !currentBrand && !currentSearch) {
+      items.push({ label: "New Arrivals" });
+    } else if (currentBrand) {
+      items.push({ label: currentBrand.charAt(0).toUpperCase() + currentBrand.slice(1) });
+    } else if (currentSearch) {
+      items.push({ label: `"${currentSearch}"` });
+    }
+    return items;
+  };
+
+  const activeFilters = [];
+  if (currentSearch) {
+    activeFilters.push({ label: `Search: "${currentSearch}"`, onRemove: () => removeFilterParam("search") });
+  }
+  if (currentGender) {
+    activeFilters.push({ label: `Gender: ${currentGender}`, onRemove: () => removeFilterParam("gender") });
+  }
+  if (currentBrand) {
+    activeFilters.push({ label: `Brand: ${currentBrand}`, onRemove: () => removeFilterParam("brand") });
+  }
+  if (currentSize) {
+    activeFilters.push({ label: `Size: UK ${currentSize}`, onRemove: () => removeFilterParam("size") });
+  }
+  if (minPrice || maxPrice) {
+    const priceText = minPrice && maxPrice ? `₹${minPrice} - ₹${maxPrice}` : minPrice ? `From ₹${minPrice}` : `Up to ₹${maxPrice}`;
+    activeFilters.push({
+      label: `Price: ${priceText}`,
+      onRemove: () => {
+        const newParams = new URLSearchParams(searchParams);
+        newParams.delete("minPrice");
+        newParams.delete("maxPrice");
+        newParams.set("page", "1");
+        setSearchParams(newParams);
+      },
+    });
+  }
+  if (inStock) {
+    activeFilters.push({ label: "In Stock Only", onRemove: () => removeFilterParam("inStock") });
+  }
+
   const activeFiltersCount = Array.from(searchParams.keys()).filter(
     (key) => !["search", "sort", "page", "limit"].includes(key)
   ).length;
@@ -50,7 +118,7 @@ const ProductCatalog = () => {
     <div className="min-h-screen bg-[#0a0a0a] text-white pb-12">
       {/* Top Navigation / Breadcrumbs */}
       <div className="max-w-7xl mx-auto w-full flex items-center justify-between px-4 py-4 sm:px-6 lg:px-8">
-        <Breadcrumbs items={[{ label: "Products" }]} />
+        <Breadcrumbs items={getBreadcrumbItems()} />
       </div>
 
       <div className="max-w-7xl mx-auto w-full px-4 sm:px-6 lg:px-8">
@@ -58,22 +126,39 @@ const ProductCatalog = () => {
         <div className="mb-8 flex flex-col md:flex-row md:items-end justify-between gap-4">
           <div>
             <h1 className="text-3xl sm:text-4xl font-bold tracking-tight">
-              {currentSearch ? `Search Results` : "All Products"}
+              {getPageTitle()}
             </h1>
-            {currentSearch && (
+
+            {/* Active Filter Chips */}
+            {activeFilters.length > 0 && (
               <div className="mt-3 flex items-center gap-2 flex-wrap">
-                <span className="text-gray-400">Showing results for:</span>
-                <span className="bg-[#1f1f1f] border border-white/10 px-3 py-1 rounded-full text-sm font-medium flex items-center gap-2">
-                  "{currentSearch}"
-                  <button
-                    onClick={clearSearch}
-                    className="hover:text-lime-400 transition"
-                  >
-                    <X size={14} />
-                  </button>
+                <span className="text-zinc-500 text-xs uppercase tracking-wider font-semibold mr-1">
+                  Active Filters:
                 </span>
+                {activeFilters.map((filter, index) => (
+                  <span
+                    key={index}
+                    className="bg-[#18181b] border border-white/10 hover:border-white/20 px-3 py-1 rounded-full text-xs font-medium flex items-center gap-1.5 text-zinc-200 transition"
+                  >
+                    <span>{filter.label}</span>
+                    <button
+                      onClick={filter.onRemove}
+                      className="text-zinc-400 hover:text-lime-400 p-0.5 rounded-full transition cursor-pointer"
+                      aria-label={`Remove ${filter.label} filter`}
+                    >
+                      <X size={13} />
+                    </button>
+                  </span>
+                ))}
+                <button
+                  onClick={clearAllFilters}
+                  className="text-xs text-lime-400 hover:text-lime-300 font-semibold underline underline-offset-4 ml-1 transition cursor-pointer"
+                >
+                  Clear all
+                </button>
               </div>
             )}
+
             <p className="text-gray-500 mt-2 text-sm">
               {totalProducts} product{totalProducts !== 1 && "s"} found
             </p>

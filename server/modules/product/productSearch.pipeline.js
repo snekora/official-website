@@ -154,6 +154,24 @@ const buildFilterStages = (filters) => {
     matchConditions["variants.sizes.stock"] = { $gt: 0 };
   }
 
+  // Gender filter — matches specified gender or Unisex (e.g. Men includes Men & Unisex)
+  if (filters.gender) {
+    const gLower = String(filters.gender).toLowerCase();
+    if (gLower === "men" || gLower === "women") {
+      matchConditions.gender = {
+        $in: [
+          new RegExp(`^${escapeRegex(filters.gender)}$`, "i"),
+          /^Unisex$/i,
+        ],
+      };
+    } else {
+      matchConditions.gender = {
+        $regex: `^${escapeRegex(filters.gender)}$`,
+        $options: "i",
+      };
+    }
+  }
+
   const stages = [];
 
   if (Object.keys(matchConditions).length > 0) {

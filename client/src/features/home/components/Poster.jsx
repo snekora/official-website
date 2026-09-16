@@ -85,7 +85,7 @@ const Poster = () => {
 
   if (loading) {
     return (
-      <div className="relative w-full aspect-[16/9] lg:aspect-[21/9] rounded-2xl md:rounded-3xl overflow-hidden bg-[#151515] flex items-center justify-center">
+      <div className="relative w-full aspect-[16/9] lg:aspect-[21/9] overflow-hidden bg-[#151515] flex items-center justify-center">
         <Loader2 size={32} className="animate-spin text-lime-400" />
       </div>
     );
@@ -93,7 +93,7 @@ const Poster = () => {
 
   return (
     <div
-      className="relative w-full aspect-[16/9] lg:aspect-[21/9] rounded-2xl md:rounded-3xl overflow-hidden bg-[#151515] group/carousel select-none"
+      className="relative w-full aspect-[16/9] lg:aspect-[21/9] overflow-hidden bg-[#151515] group/carousel select-none"
       onMouseEnter={() => setIsPaused(true)}
       onMouseLeave={() => setIsPaused(false)}
       onTouchStart={onTouchStart}
