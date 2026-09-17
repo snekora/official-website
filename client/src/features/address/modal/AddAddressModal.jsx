@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { Home, Briefcase, CheckCircle2 } from "lucide-react";
+import StateDropdown from "../components/StateDropdown";
 
 const AddAddressModal = ({ isOpen, onClose, onSave, isFirstAddress }) => {
   const [formData, setFormData] = useState({
@@ -172,8 +173,8 @@ const AddAddressModal = ({ isOpen, onClose, onSave, isFirstAddress }) => {
               <h3 className="text-[13px] font-semibold uppercase tracking-wider text-zinc-500 mb-3 ml-4">
                 Location
               </h3>
-              <div className="bg-[#121212] border border-white/10 rounded-[24px] overflow-hidden divide-y divide-white/5">
-                <div className="flex items-center px-4 py-1 h-14">
+              <div className="bg-[#121212] border border-white/10 rounded-[24px] divide-y divide-white/5 relative">
+                <div className="flex items-center px-4 py-1 h-14 rounded-t-[24px]">
                   <input
                     value={formData.line1}
                     onChange={(e) => handleChange("line1", e.target.value)}
@@ -190,7 +191,7 @@ const AddAddressModal = ({ isOpen, onClose, onSave, isFirstAddress }) => {
                     className="w-full h-full bg-transparent text-[15px] text-white outline-none placeholder:text-zinc-600"
                   />
                 </div>
-                <div className="flex items-center divide-x divide-white/5">
+                <div className="flex items-center divide-x divide-white/5 relative">
                   <div className="flex-1 flex items-center px-4 py-1 h-14">
                     <input
                       value={formData.city}
@@ -201,16 +202,13 @@ const AddAddressModal = ({ isOpen, onClose, onSave, isFirstAddress }) => {
                     />
                   </div>
                   <div className="flex-1 flex items-center px-4 py-1 h-14">
-                    <input
+                    <StateDropdown
                       value={formData.state}
-                      onChange={(e) => handleChange("state", e.target.value)}
-                      placeholder="State"
-                      required
-                      className="w-full h-full bg-transparent text-[15px] text-white outline-none placeholder:text-zinc-600"
+                      onChange={(val) => handleChange("state", val)}
                     />
                   </div>
                 </div>
-                <div className="flex items-center px-4 py-1 h-14">
+                <div className="flex items-center px-4 py-1 h-14 rounded-b-[24px]">
                   <span className="w-24 text-[15px] text-zinc-400">
                     Pincode
                   </span>

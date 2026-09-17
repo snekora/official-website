@@ -1,8 +1,14 @@
 import React from "react";
+import { Link } from "react-router-dom";
 import SnekoraLogo from "../assets/logo/snekora_logo.png";
 
 const Footer = () => {
-  const shopLinks = ["New Arrivals", "Sneakers", "Men", "Women", "Sale"];
+  const shopLinks = [
+    { label: "Home", path: "/" },
+    { label: "Men", path: "/products?gender=Men" },
+    { label: "Women", path: "/products?gender=Women" },
+    { label: "New Arrivals", path: "/products?sort=newest" },
+  ];
   const helpLinks = ["FAQ", "Shipping", "Returns", "Contact Us"];
   const followLinks = ["Instagram", "Facebook", "X", "TikTok"];
 
@@ -27,13 +33,13 @@ const Footer = () => {
               Shop
             </h4>
             {shopLinks.map((item) => (
-              <a
-                key={item}
-                href={`#${item.toLowerCase().replace(" ", "-")}`}
+              <Link
+                key={item.label}
+                to={item.path}
                 className="text-zinc-300 hover:text-lime-400 transition-colors text-sm font-medium w-fit"
               >
-                {item}
-              </a>
+                {item.label}
+              </Link>
             ))}
           </div>
 
