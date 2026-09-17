@@ -5,8 +5,25 @@ const api = axios.create({
   withCredentials: true,
 });
 
-// Show loader
+// Show loader and attach Authorization token
 api.interceptors.request.use((config) => {
+  // Determine if this is an admin route / admin request
+  const isAdminPath =
+    typeof window !== "undefined" &&
+    (window.location.pathname.includes("mQ8vR2kX9Lp7N4") ||
+      (config.url && config.url.includes("/admin")));
+
+  const adminToken = localStorage.getItem("admin_token");
+  const userToken = localStorage.getItem("token");
+
+  const token = isAdminPath
+    ? (adminToken || userToken)
+    : (userToken || adminToken);
+
+  if (token && !config.headers.Authorization) {
+    config.headers.Authorization = `Bearer ${token}`;
+  }
+
   const loader = document.getElementById("global-loader");
   if (loader) {
     loader.classList.remove("hidden");
