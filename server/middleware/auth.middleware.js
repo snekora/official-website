@@ -20,16 +20,16 @@ const authenticate = asyncHandler(async (req, res, next) => {
   try {
     let token;
 
-    // 1. Check cookies first (primary method for browser clients)
-    if (req.cookies && req.cookies.token) {
-      token = req.cookies.token;
-    }
-    // 2. Fallback to Authorization header (for API/mobile clients)
-    else if (
+    // 1. Check Authorization header first (Bearer token — works reliably across all browsers including iOS/Safari)
+    if (
       req.headers.authorization &&
-      req.headers.authorization.startsWith("Bearer")
+      req.headers.authorization.startsWith("Bearer ")
     ) {
-      token = req.headers.authorization.split(" ")[1];
+      token = req.headers.authorization.split(" ")[1]?.trim();
+    }
+    // 2. Fallback to cookies
+    else if (req.cookies && req.cookies.token) {
+      token = req.cookies.token;
     }
 
     if (!token) {
@@ -68,8 +68,8 @@ const authenticate = asyncHandler(async (req, res, next) => {
  * Admin authentication middleware.
  *
  * Extracts JWT from:
- *   1. HTTP-only cookie (`req.cookies.admin_token`)  — primary method
- *   2. Authorization header (`Bearer <token>`) — fallback for API clients
+ *   1. Authorization header (`Bearer <token>`) — primary method
+ *   2. HTTP-only cookie (`req.cookies.admin_token`)  — fallback
  *
  * Verifies the token has `role: "admin"`, fetches the admin from
  * the database, and attaches the admin object to `req.admin`.
@@ -81,16 +81,16 @@ const authenticateAdmin = asyncHandler(async (req, res, next) => {
   try {
     let token;
 
-    // 1. Check cookies first (admin uses a separate cookie)
-    if (req.cookies && req.cookies.admin_token) {
-      token = req.cookies.admin_token;
-    }
-    // 2. Fallback to Authorization header
-    else if (
+    // 1. Check Authorization header first
+    if (
       req.headers.authorization &&
-      req.headers.authorization.startsWith("Bearer")
+      req.headers.authorization.startsWith("Bearer ")
     ) {
-      token = req.headers.authorization.split(" ")[1];
+      token = req.headers.authorization.split(" ")[1]?.trim();
+    }
+    // 2. Fallback to cookies
+    else if (req.cookies && req.cookies.admin_token) {
+      token = req.cookies.admin_token;
     }
 
     if (!token) {

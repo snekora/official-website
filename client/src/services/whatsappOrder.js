@@ -64,7 +64,18 @@ export const openWhatsApp = ({ product, selectedVariant, selectedSize, quantity,
   const message = buildWhatsAppMessage({ product, selectedVariant, selectedSize, quantity, address });
   const url = `https://wa.me/${businessNumber}?text=${encodeURIComponent(message)}`;
 
-  window.open(url, "_blank", "noopener,noreferrer");
+  const isMobile =
+    typeof navigator !== "undefined" &&
+    /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+
+  if (isMobile) {
+    window.location.href = url;
+  } else {
+    const newWindow = window.open(url, "_blank", "noopener,noreferrer");
+    if (!newWindow || newWindow.closed || typeof newWindow.closed === "undefined") {
+      window.location.href = url;
+    }
+  }
   return url;
 };
 
@@ -130,6 +141,17 @@ export const openCartWhatsApp = ({ cartItems, address, subtotal, shipping, total
   const message = buildCartWhatsAppMessage({ cartItems, address, subtotal, shipping, total });
   const url = `https://wa.me/${businessNumber}?text=${encodeURIComponent(message)}`;
 
-  window.open(url, "_blank", "noopener,noreferrer");
+  const isMobile =
+    typeof navigator !== "undefined" &&
+    /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+
+  if (isMobile) {
+    window.location.href = url;
+  } else {
+    const newWindow = window.open(url, "_blank", "noopener,noreferrer");
+    if (!newWindow || newWindow.closed || typeof newWindow.closed === "undefined") {
+      window.location.href = url;
+    }
+  }
   return url;
 };

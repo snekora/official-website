@@ -137,7 +137,11 @@ const ProductDetails = () => {
         address: defaultAddress,
       });
     } catch (error) {
-      toast.error("Failed to fetch your address. Please try again.");
+      toast.error(
+        typeof error === "string"
+          ? error
+          : "Failed to fetch your address. Please try again."
+      );
     } finally {
       setBuyNowLoading(false);
     }
